@@ -343,6 +343,7 @@ struct DashboardView: View {
                             miniCreditCard(card)
                                 .cardPressEffect()
                         }
+                        .buttonStyle(.plain)
                     }
                 }
             }
