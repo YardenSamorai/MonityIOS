@@ -24,6 +24,7 @@ struct CreditCardListView: View {
                                     .staggeredAppear(appeared: appeared, index: index)
                                     .cardPressEffect()
                             }
+                            .buttonStyle(.plain)
                             .contextMenu {
                                 Button(role: .destructive) {
                                     UIImpactFeedbackGenerator(style: .medium).impactOccurred()
