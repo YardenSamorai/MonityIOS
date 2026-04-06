@@ -1,6 +1,7 @@
 const express = require('express');
 const { RecurringRule, Category } = require('../models');
 const { authMiddleware } = require('../middleware/auth');
+const { processRecurringRules } = require('../services/recurringService');
 
 const router = express.Router();
 router.use(authMiddleware);
@@ -44,6 +45,8 @@ router.post('/', async (req, res) => {
     });
 
     res.status(201).json({ recurringRule: full });
+
+    processRecurringRules().catch(err => console.error('Post-create recurring processing error:', err));
   } catch (err) {
     console.error('Create recurring error:', err);
     res.status(500).json({ error: 'Failed to create recurring rule' });
