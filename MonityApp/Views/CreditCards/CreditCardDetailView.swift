@@ -118,7 +118,7 @@ struct CreditCardDetailView: View {
             } label: {
                 Image(systemName: "chevron.left")
                     .font(.body.weight(.semibold))
-                    .foregroundStyle(viewModel.canGoBack ? AppTheme.accent : .quaternary)
+                    .foregroundColor(viewModel.canGoBack ? AppTheme.accent : Color.gray.opacity(0.3))
                     .frame(width: 36, height: 36)
                     .background(viewModel.canGoBack ? AppTheme.accent.opacity(0.1) : Color.clear)
                     .clipShape(Circle())
@@ -142,7 +142,7 @@ struct CreditCardDetailView: View {
             } label: {
                 Image(systemName: "chevron.right")
                     .font(.body.weight(.semibold))
-                    .foregroundStyle(viewModel.canGoForward ? AppTheme.accent : .quaternary)
+                    .foregroundColor(viewModel.canGoForward ? AppTheme.accent : Color.gray.opacity(0.3))
                     .frame(width: 36, height: 36)
                     .background(viewModel.canGoForward ? AppTheme.accent.opacity(0.1) : Color.clear)
                     .clipShape(Circle())
