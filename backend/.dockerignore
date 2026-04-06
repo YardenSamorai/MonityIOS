@@ -1,0 +1,5 @@
+node_modules
+.env
+monity.sqlite
+nixpacks.toml
+Procfile
