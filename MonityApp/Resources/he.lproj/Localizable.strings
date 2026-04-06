@@ -1,0 +1,219 @@
+/* Auth */
+"login" = "התחברות";
+"register" = "הרשמה";
+"email" = "אימייל";
+"password" = "סיסמה";
+"name" = "שם";
+"fill_all_fields" = "נא למלא את כל השדות";
+"password_min_length" = "הסיסמה חייבת להכיל לפחות 6 תווים";
+"no_account_register" = "אין לך חשבון? הירשם";
+"have_account_login" = "כבר יש לך חשבון? התחבר";
+"forgot_password" = "שכחתי סיסמה";
+"reset_password" = "איפוס סיסמה";
+"reset_password_subtitle" = "הזן את האימייל שלך וסיסמה חדשה";
+"new_password" = "סיסמה חדשה";
+"confirm_password" = "אימות סיסמה";
+"reset_password_button" = "אפס סיסמה";
+"passwords_dont_match" = "הסיסמאות לא תואמות";
+"password_reset_success" = "הסיסמה אופסה בהצלחה!";
+"smart_expense_tracking" = "מעקב הוצאות חכם";
+"login_subtitle" = "התחבר לחשבון שלך";
+"register_subtitle" = "צור חשבון חדש כדי להתחיל";
+"login_with_faceid" = "התחברות עם Face ID";
+"biometric_login_reason" = "התחבר ל-Monity";
+"biometric_no_credentials" = "אין פרטי התחברות שמורים. התחבר ידנית תחילה.";
+"use_password_instead" = "התחבר עם סיסמה";
+"use_faceid_instead" = "התחבר עם Face ID";
+"welcome_back" = "ברוך הבא";
+"or" = "או";
+
+/* Dashboard */
+"dashboard" = "לוח בקרה";
+"income" = "הכנסות";
+"expenses" = "הוצאות";
+"balance" = "יתרה";
+"budget_status" = "מצב תקציב";
+"recent_transactions" = "תנועות אחרונות";
+"see_all" = "הצג הכל";
+"available_to_spend" = "נשאר להוצאה";
+"pending_card_charges" = "חיובי אשראי ממתינים";
+"upcoming_fixed_expenses" = "הוצאות קבועות";
+"expected_income" = "הכנסות צפויות";
+"projected_end_of_month" = "תחזית סוף חודש";
+"upcoming_obligations" = "תשלומים קרובים";
+"upcoming_income_section" = "הכנסות צפויות";
+"fixed_expenses_title" = "הוצאות קבועות";
+"fixed_income_title" = "הכנסות קבועות";
+"status_pending" = "ממתין";
+"status_done" = "בוצע";
+"fixed_short" = "קבועות";
+"variable_short" = "משתנות";
+"status_good" = "מצוין";
+"status_tight" = "צפוף";
+"status_overdraft" = "מינוס";
+"balance_details" = "פירוט יתרה";
+"balance_over_time" = "יתרה לאורך החודש";
+"balance_after" = "יתרה:";
+"no_transactions_this_month" = "אין תנועות החודש";
+"no_transactions" = "אין תנועות";
+"add_first_transaction" = "לחץ + כדי להוסיף תנועה ראשונה";
+
+/* Transactions */
+"transactions" = "תנועות";
+"add_transaction" = "הוספת תנועה";
+"search_transactions" = "חיפוש תנועות...";
+"expense" = "הוצאה";
+"type" = "סוג";
+"amount" = "סכום";
+"details" = "פרטים";
+"note_placeholder" = "למה הוציאת?";
+"note_placeholder_income" = "ממה ההכנסה?";
+"date" = "תאריך";
+"category" = "קטגוריה";
+"select_category" = "בחר קטגוריה";
+"uncategorized" = "ללא קטגוריה";
+"save" = "שמור";
+"update" = "עדכן";
+"edit" = "עריכה";
+"edit_transaction" = "עריכת תנועה";
+"delete_transaction" = "מחיקת תנועה";
+"delete_confirm_title" = "למחוק את התנועה?";
+"delete_confirm_message" = "פעולה זו לא ניתנת לביטול.";
+"cancel" = "ביטול";
+"all" = "הכל";
+"invalid_amount" = "נא להזין סכום תקין";
+
+/* Budgets */
+"budgets" = "תקציבים";
+"add_budget" = "הוספת תקציב";
+"budget_limit" = "מגבלת תקציב";
+"period" = "תקופה";
+"weekly" = "שבועי";
+"monthly" = "חודשי";
+"yearly" = "שנתי";
+"no_budgets" = "אין תקציבים";
+"add_first_budget" = "הגדר מגבלות הוצאה לקטגוריות שלך";
+"all_categories_have_budgets" = "לכל הקטגוריות כבר יש תקציב";
+"manage_budgets" = "ניהול תקציבים";
+
+/* Recurring */
+"recurring_transactions" = "תנועות קבועות";
+"add_recurring" = "הוספת תנועה קבועה";
+"no_recurring" = "אין תנועות קבועות";
+"add_first_recurring" = "הגדר תנועות אוטומטיות שחוזרות על עצמן";
+"frequency" = "תדירות";
+"daily" = "יומי";
+"start_date" = "תאריך התחלה";
+"end_date" = "תאריך סיום";
+"active" = "פעיל";
+"paused" = "מושהה";
+"manage_recurring" = "תנועות קבועות";
+"edit_recurring" = "עריכת תנועה קבועה";
+"delete_recurring" = "מחיקת תנועה קבועה";
+"delete_recurring_confirm" = "למחוק את התנועה הקבועה?";
+"delete_recurring_message" = "פעולה זו תבטל תנועות אוטומטיות עתידיות.";
+
+/* Charts */
+"charts" = "גרפים";
+"expenses_by_category" = "הוצאות לפי קטגוריה";
+"monthly_comparison" = "השוואה חודשית";
+"spending_trend" = "מגמת הוצאות";
+"no_data" = "אין נתונים עדיין";
+"add_transactions_for_charts" = "הוסף תנועות כדי לראות תובנות על ההוצאות שלך";
+
+/* Settings */
+"settings" = "הגדרות";
+"profile" = "פרופיל";
+"preferences" = "העדפות";
+"currency" = "מטבע";
+"language" = "שפה";
+"select_currency" = "בחר מטבע";
+"data" = "נתונים";
+"export_csv" = "ייצוא ל-CSV";
+"logout" = "התנתקות";
+"logout_confirm" = "להתנתק?";
+"logout_message" = "האם אתה בטוח שברצונך להתנתק?";
+
+/* Greetings */
+"good_morning" = "בוקר טוב";
+"good_afternoon" = "צהריים טובים";
+"good_evening" = "ערב טוב";
+
+/* Credit Cards */
+"credit_cards" = "כרטיסים";
+"add_credit_card" = "הוספת כרטיס";
+"no_credit_cards" = "אין כרטיסי אשראי";
+"add_first_credit_card" = "הוסף כרטיס אשראי כדי לעקוב אחרי ההוצאות";
+"card_name_placeholder" = "שם הכרטיס";
+"last_four_digits" = "4 ספרות אחרונות";
+"billing_day" = "יום חיוב";
+"billing_day_label" = "יום חיוב";
+"credit_limit" = "מסגרת אשראי";
+"limit_amount" = "סכום מסגרת";
+"card_color" = "צבע הכרטיס";
+"current_balance" = "יתרה";
+"next_billing" = "חיוב הבא";
+"card_transactions" = "מחזור נוכחי";
+"no_card_transactions" = "אין תנועות";
+"card_transactions_empty_message" = "תנועות בכרטיס יופיעו כאן";
+"bill_now" = "חייב עכשיו";
+"bill_confirm_title" = "לחייב את הכרטיס?";
+"bill_confirm_message %@" = "פעולה זו תחייב %@ מחשבון העו״ש ותאפס את יתרת הכרטיס.";
+"payment_method" = "אמצעי תשלום";
+"bank_account" = "חשבון עו״ש";
+"last_billed" = "חויב לאחרונה:";
+"auto_billing_note" = "כרטיס זה מחויב אוטומטית ביום החיוב בכל חודש";
+
+/* Onboarding */
+"onboarding_next" = "המשך";
+"onboarding_start" = "בואו נתחיל";
+"onb_choose_language" = "בחר שפה";
+"onb_language_subtitle" = "תוכל לשנות בכל עת בהגדרות";
+"onb_welcome_title" = "ברוך הבא";
+"onb_welcome_subtitle" = "בוא נכין את הכל כדי שתוכל להתחיל לנהל את הכספים שלך";
+"onb_lets_setup" = "בואו נתחיל";
+"onb_balance_title" = "מה היתרה הנוכחית?";
+"onb_balance_subtitle" = "הזן את יתרת העו״ש שלך כדי שנוכל לעקוב אחרי המצב הפיננסי שלך";
+"onb_current_balance" = "יתרה נוכחית";
+"onb_initial_balance_note" = "יתרת פתיחה";
+"onb_recurring_title" = "הוצאות והכנסות קבועות";
+"onb_recurring_subtitle" = "הוסף תנועות שחוזרות על עצמן כל חודש - משכורת, שכירות, מנויים";
+"onb_no_recurring_yet" = "עדיין לא הוספת תנועות קבועות\nלחץ למטה כדי להוסיף";
+"onb_add_recurring" = "הוספת תנועה קבועה";
+"onb_recurring_note_expense" = "לדוגמה: שכירות, ביטוח, מנוי";
+"onb_recurring_note_income" = "לדוגמה: משכורת, דמי שכירות";
+"onb_add" = "הוסף";
+"onb_finish" = "סיום והתחלה";
+"onb_skip" = "דלג";
+
+/* Appearance */
+"appearance" = "מראה";
+"appearance_light" = "בהיר";
+"appearance_dark" = "כהה";
+"appearance_system" = "מערכת";
+
+/* Security */
+"security" = "אבטחה";
+"biometric_reason" = "בטל נעילה כדי לגשת לנתונים הפיננסיים שלך";
+"locked_message" = "הנתונים שלך מוגנים";
+"unlock_with" = "בטל נעילה עם";
+"use_passcode" = "השתמש בקוד גישה";
+
+/* Notifications */
+"notifications" = "התראות";
+"daily_reminder" = "תזכורת יומית";
+"reminder_time" = "שעת תזכורת";
+"budget_alerts" = "התראות תקציב";
+"card_reminders" = "תזכורות כרטיסים";
+"notif_daily_title" = "תזכורת יומית";
+"notif_daily_body" = "אל תשכח לרשום את ההוצאות שלך היום!";
+"notif_budget_title" = "התראת תקציב";
+"notif_budget_body" = "%@ הגיע ל-%d%% מהתקציב";
+"notif_card_title" = "תזכורת כרטיס";
+"notif_card_body" = "חיוב %@ מתקרב בעוד יומיים";
+
+/* General */
+"loading" = "טוען...";
+"error" = "שגיאה";
+"ok" = "אישור";
+"delete" = "מחיקה";

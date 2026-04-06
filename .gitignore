@@ -1,0 +1,9 @@
+node_modules/
+.env
+xcuserdata/
+*.xcworkspace
+DerivedData/
+build/
+.DS_Store
+*.sqlite
+.cursor/

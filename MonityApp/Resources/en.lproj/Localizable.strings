@@ -1,0 +1,219 @@
+/* Auth */
+"login" = "Log In";
+"register" = "Sign Up";
+"email" = "Email";
+"password" = "Password";
+"name" = "Name";
+"fill_all_fields" = "Please fill in all fields";
+"password_min_length" = "Password must be at least 6 characters";
+"no_account_register" = "Don't have an account? Sign Up";
+"have_account_login" = "Already have an account? Log In";
+"forgot_password" = "Forgot Password?";
+"reset_password" = "Reset Password";
+"reset_password_subtitle" = "Enter your email and choose a new password";
+"new_password" = "New Password";
+"confirm_password" = "Confirm Password";
+"reset_password_button" = "Reset Password";
+"passwords_dont_match" = "Passwords don't match";
+"password_reset_success" = "Password reset successfully!";
+"smart_expense_tracking" = "Smart Expense Tracking";
+"login_subtitle" = "Sign in to your account";
+"register_subtitle" = "Create your account to get started";
+"login_with_faceid" = "Sign in with Face ID";
+"biometric_login_reason" = "Sign in to Monity";
+"biometric_no_credentials" = "No saved credentials. Please sign in manually first.";
+"use_password_instead" = "Use password instead";
+"use_faceid_instead" = "Use Face ID instead";
+"welcome_back" = "Welcome back";
+"or" = "or";
+
+/* Dashboard */
+"dashboard" = "Dashboard";
+"income" = "Income";
+"expenses" = "Expenses";
+"balance" = "Balance";
+"budget_status" = "Budget Status";
+"recent_transactions" = "Recent Transactions";
+"see_all" = "See All";
+"available_to_spend" = "Available to Spend";
+"pending_card_charges" = "Pending Card Charges";
+"upcoming_fixed_expenses" = "Fixed Expenses";
+"expected_income" = "Expected Income";
+"projected_end_of_month" = "Projected End of Month";
+"upcoming_obligations" = "Upcoming Payments";
+"upcoming_income_section" = "Expected Income";
+"fixed_expenses_title" = "Fixed Expenses";
+"fixed_income_title" = "Fixed Income";
+"status_pending" = "Pending";
+"status_done" = "Received";
+"fixed_short" = "Fixed";
+"variable_short" = "Variable";
+"status_good" = "On Track";
+"status_tight" = "Tight";
+"status_overdraft" = "Overdraft";
+"balance_details" = "Balance Details";
+"balance_over_time" = "Balance Over Time";
+"balance_after" = "Balance:";
+"no_transactions_this_month" = "No transactions this month";
+"no_transactions" = "No Transactions";
+"add_first_transaction" = "Tap + to add your first transaction";
+
+/* Transactions */
+"transactions" = "Transactions";
+"add_transaction" = "Add Transaction";
+"search_transactions" = "Search transactions...";
+"expense" = "Expense";
+"type" = "Type";
+"amount" = "Amount";
+"details" = "Details";
+"note_placeholder" = "What did you spend on?";
+"note_placeholder_income" = "What is this income from?";
+"date" = "Date";
+"category" = "Category";
+"select_category" = "Select Category";
+"uncategorized" = "Uncategorized";
+"save" = "Save";
+"update" = "Update";
+"edit" = "Edit";
+"edit_transaction" = "Edit Transaction";
+"delete_transaction" = "Delete Transaction";
+"delete_confirm_title" = "Delete Transaction?";
+"delete_confirm_message" = "This action cannot be undone.";
+"cancel" = "Cancel";
+"all" = "All";
+"invalid_amount" = "Please enter a valid amount";
+
+/* Budgets */
+"budgets" = "Budgets";
+"add_budget" = "Add Budget";
+"budget_limit" = "Budget Limit";
+"period" = "Period";
+"weekly" = "Weekly";
+"monthly" = "Monthly";
+"yearly" = "Yearly";
+"no_budgets" = "No Budgets";
+"add_first_budget" = "Set spending limits for your categories";
+"all_categories_have_budgets" = "All categories already have budgets";
+"manage_budgets" = "Manage Budgets";
+
+/* Recurring */
+"recurring_transactions" = "Recurring";
+"add_recurring" = "Add Recurring";
+"no_recurring" = "No Recurring Transactions";
+"add_first_recurring" = "Set up automatic transactions that repeat on a schedule";
+"frequency" = "Frequency";
+"daily" = "Daily";
+"start_date" = "Start Date";
+"end_date" = "End Date";
+"active" = "Active";
+"paused" = "Paused";
+"manage_recurring" = "Recurring Transactions";
+"edit_recurring" = "Edit Recurring";
+"delete_recurring" = "Delete Recurring";
+"delete_recurring_confirm" = "Delete Recurring Transaction?";
+"delete_recurring_message" = "This will stop future automatic transactions.";
+
+/* Charts */
+"charts" = "Charts";
+"expenses_by_category" = "Expenses by Category";
+"monthly_comparison" = "Monthly Comparison";
+"spending_trend" = "Spending Trend";
+"no_data" = "No Data Yet";
+"add_transactions_for_charts" = "Add transactions to see your spending insights";
+
+/* Settings */
+"settings" = "Settings";
+"profile" = "Profile";
+"preferences" = "Preferences";
+"currency" = "Currency";
+"language" = "Language";
+"select_currency" = "Select Currency";
+"data" = "Data";
+"export_csv" = "Export to CSV";
+"logout" = "Log Out";
+"logout_confirm" = "Log Out?";
+"logout_message" = "Are you sure you want to log out?";
+
+/* Greetings */
+"good_morning" = "Good Morning";
+"good_afternoon" = "Good Afternoon";
+"good_evening" = "Good Evening";
+
+/* Credit Cards */
+"credit_cards" = "Cards";
+"add_credit_card" = "Add Card";
+"no_credit_cards" = "No Credit Cards";
+"add_first_credit_card" = "Add a credit card to track your spending";
+"card_name_placeholder" = "Card Name";
+"last_four_digits" = "Last 4 Digits";
+"billing_day" = "Billing Day";
+"billing_day_label" = "Billing Day";
+"credit_limit" = "Credit Limit";
+"limit_amount" = "Limit Amount";
+"card_color" = "Card Color";
+"current_balance" = "Balance";
+"next_billing" = "Next Billing";
+"card_transactions" = "Current Cycle";
+"no_card_transactions" = "No Transactions";
+"card_transactions_empty_message" = "Transactions on this card will appear here";
+"bill_now" = "Charge Now";
+"bill_confirm_title" = "Charge Card?";
+"bill_confirm_message %@" = "This will charge %@ to your bank account and reset the card balance.";
+"payment_method" = "Payment";
+"bank_account" = "Bank Account";
+"last_billed" = "Last billed:";
+"auto_billing_note" = "This card is automatically charged on the billing day each month";
+
+/* Onboarding */
+"onboarding_next" = "Continue";
+"onboarding_start" = "Let's Start";
+"onb_choose_language" = "Choose Language";
+"onb_language_subtitle" = "You can change this anytime in Settings";
+"onb_welcome_title" = "Welcome";
+"onb_welcome_subtitle" = "Let's set everything up so you can start managing your finances";
+"onb_lets_setup" = "Let's Get Started";
+"onb_balance_title" = "What's Your Current Balance?";
+"onb_balance_subtitle" = "Enter your bank account balance so we can track your financial status";
+"onb_current_balance" = "Current Balance";
+"onb_initial_balance_note" = "Opening Balance";
+"onb_recurring_title" = "Recurring Expenses & Income";
+"onb_recurring_subtitle" = "Add transactions that repeat every month — salary, rent, subscriptions";
+"onb_no_recurring_yet" = "No recurring transactions yet\nTap below to add one";
+"onb_add_recurring" = "Add Recurring Transaction";
+"onb_recurring_note_expense" = "e.g. Rent, Insurance, Subscription";
+"onb_recurring_note_income" = "e.g. Salary, Rental Income";
+"onb_add" = "Add";
+"onb_finish" = "Finish & Start";
+"onb_skip" = "Skip";
+
+/* Appearance */
+"appearance" = "Appearance";
+"appearance_light" = "Light";
+"appearance_dark" = "Dark";
+"appearance_system" = "System";
+
+/* Security */
+"security" = "Security";
+"biometric_reason" = "Unlock Monity to access your financial data";
+"locked_message" = "Your data is secured";
+"unlock_with" = "Unlock with";
+"use_passcode" = "Use Passcode";
+
+/* Notifications */
+"notifications" = "Notifications";
+"daily_reminder" = "Daily Reminder";
+"reminder_time" = "Reminder Time";
+"budget_alerts" = "Budget Alerts";
+"card_reminders" = "Card Reminders";
+"notif_daily_title" = "Daily Reminder";
+"notif_daily_body" = "Don't forget to log your expenses today!";
+"notif_budget_title" = "Budget Alert";
+"notif_budget_body" = "%@ has reached %d%% of its budget";
+"notif_card_title" = "Card Reminder";
+"notif_card_body" = "%@ billing is coming up in 2 days";
+
+/* General */
+"loading" = "Loading...";
+"error" = "Error";
+"ok" = "OK";
+"delete" = "Delete";
