@@ -163,6 +163,11 @@
 "bank_account" = "Bank Account";
 "last_billed" = "Last billed:";
 "auto_billing_note" = "This card is automatically charged on the billing day each month";
+"billing_history" = "Billing History";
+"no_charges_this_month" = "No Charges This Month";
+"total_expenses" = "Total Expenses";
+"total_credits" = "Total Credits";
+"net_charge" = "Net Charge";
 
 /* Onboarding */
 "onboarding_next" = "Continue";

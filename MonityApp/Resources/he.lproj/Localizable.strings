@@ -163,6 +163,11 @@
 "bank_account" = "חשבון עו״ש";
 "last_billed" = "חויב לאחרונה:";
 "auto_billing_note" = "כרטיס זה מחויב אוטומטית ביום החיוב בכל חודש";
+"billing_history" = "היסטוריית חיובים";
+"no_charges_this_month" = "אין חיובים בחודש זה";
+"total_expenses" = "סה\"כ הוצאות";
+"total_credits" = "סה\"כ זיכויים";
+"net_charge" = "חיוב נטו";
 
 /* Onboarding */
 "onboarding_next" = "המשך";

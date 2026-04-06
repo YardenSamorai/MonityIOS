@@ -28,3 +28,16 @@ struct CreditCardDetailResponse: Codable {
 struct CreditCardBillResponse: Codable {
     let charged: Double
 }
+
+struct CreditCardHistorySummary: Codable {
+    let totalExpenses: Double
+    let totalCredits: Double
+    let netCharge: Double
+}
+
+struct CreditCardHistoryResponse: Codable {
+    let month: String
+    let transactions: [Transaction]
+    let summary: CreditCardHistorySummary
+    let availableMonths: [String]
+}

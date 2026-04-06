@@ -77,6 +77,63 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+router.get('/:id/history', async (req, res) => {
+  try {
+    const card = await CreditCard.findOne({
+      where: { id: req.params.id, userId: req.userId },
+    });
+    if (!card) return res.status(404).json({ error: 'Credit card not found' });
+
+    const now = new Date();
+    const month = req.query.month || `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+    const [year, mon] = month.split('-').map(Number);
+    const from = `${year}-${String(mon).padStart(2, '0')}-01`;
+    const lastDay = new Date(year, mon, 0).getDate();
+    const to = `${year}-${String(mon).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+
+    const transactions = await Transaction.findAll({
+      where: {
+        creditCardId: card.id,
+        date: { [Op.gte]: from, [Op.lte]: to },
+      },
+      include: [{ model: Category, attributes: ['id', 'name', 'nameHe', 'icon', 'color'] }],
+      order: [['date', 'DESC'], ['createdAt', 'DESC']],
+    });
+
+    const totalExpenses = transactions
+      .filter(t => t.type === 'expense')
+      .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+    const totalCredits = transactions
+      .filter(t => t.type === 'income')
+      .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+
+    const allDates = await Transaction.findAll({
+      attributes: [[sequelize.fn('DISTINCT', sequelize.fn('SUBSTR', sequelize.col('date'), 1, 7)), 'month']],
+      where: { creditCardId: card.id },
+      raw: true,
+    });
+    const availableMonths = allDates
+      .map(r => r.month)
+      .filter(Boolean)
+      .sort();
+
+    res.json({
+      month,
+      transactions,
+      summary: {
+        totalExpenses,
+        totalCredits,
+        netCharge: totalExpenses - totalCredits,
+      },
+      availableMonths,
+    });
+  } catch (err) {
+    console.error('Credit card history error:', err);
+    res.status(500).json({ error: 'Failed to fetch credit card history' });
+  }
+});
+
 router.post('/', async (req, res) => {
   try {
     const { name, lastFourDigits, billingDay, creditLimit, color } = req.body;
