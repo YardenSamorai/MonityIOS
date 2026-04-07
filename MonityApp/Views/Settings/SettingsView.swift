@@ -7,6 +7,7 @@ struct SettingsView: View {
     @EnvironmentObject var biometricManager: BiometricAuthManager
     @StateObject private var viewModel = SettingsViewModel()
     @StateObject private var notificationManager = NotificationManager.shared
+    @StateObject private var householdViewModel = HouseholdViewModel()
     @State private var showLogoutAlert = false
     @State private var reminderDate = Date()
 
@@ -173,6 +174,33 @@ struct SettingsView: View {
                         }
                     }
 
+                    settingsGroup(title: "household") {
+                        NavigationLink {
+                            if householdViewModel.hasHousehold {
+                                HouseholdSettingsView(viewModel: householdViewModel)
+                            } else {
+                                HouseholdView()
+                            }
+                        } label: {
+                            settingsRow(icon: "person.2.fill", iconGradient: LinearGradient(colors: [Color(hex: "E17055"), Color(hex: "FDCB6E")], startPoint: .topLeading, endPoint: .bottomTrailing), label: "household_settings") {
+                                HStack(spacing: 4) {
+                                    if householdViewModel.hasHousehold {
+                                        Text(householdViewModel.household?.name ?? "")
+                                            .font(.subheadline)
+                                            .foregroundStyle(.secondary)
+                                    } else {
+                                        Text("household_not_set")
+                                            .font(.subheadline)
+                                            .foregroundStyle(.secondary)
+                                    }
+                                    Image(systemName: "chevron.right")
+                                        .font(.caption2.weight(.semibold))
+                                        .foregroundStyle(.tertiary)
+                                }
+                            }
+                        }
+                    }
+
                     settingsGroup(title: "data") {
                         Button {
                             UIImpactFeedbackGenerator(style: .light).impactOccurred()
@@ -254,6 +282,7 @@ struct SettingsView: View {
             }
             .task {
                 await viewModel.loadCurrencies()
+                await householdViewModel.loadHousehold()
                 var comps = DateComponents()
                 comps.hour = notificationManager.dailyReminderHour
                 comps.minute = 0

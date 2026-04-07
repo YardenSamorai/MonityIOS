@@ -4,6 +4,7 @@ struct RecurringListView: View {
     @StateObject private var viewModel = RecurringViewModel()
     @State private var showAddRecurring = false
     @State private var editingRule: RecurringRule?
+    @State private var ruleToDelete: RecurringRule?
 
     var body: some View {
         NavigationStack {
@@ -28,10 +29,10 @@ struct RecurringListView: View {
                                 UIImpactFeedbackGenerator(style: .light).impactOccurred()
                                 editingRule = rule
                             }
-                            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                 Button(role: .destructive) {
                                     UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                                    Task { await viewModel.deleteRule(rule.id) }
+                                    ruleToDelete = rule
                                 } label: {
                                     Label("delete", systemImage: "trash")
                                 }
@@ -67,6 +68,33 @@ struct RecurringListView: View {
                             .clipShape(Circle())
                     }
                 }
+            }
+            .confirmationDialog(L("delete_recurring_confirm"), isPresented: .init(
+                get: { ruleToDelete != nil },
+                set: { if !$0 { ruleToDelete = nil } }
+            ), titleVisibility: .visible) {
+                Button(L("delete"), role: .destructive) {
+                    guard let rule = ruleToDelete else { return }
+                    Task {
+                        await viewModel.deleteRule(rule.id)
+                        if viewModel.errorMessage != nil {
+                            UINotificationFeedbackGenerator().notificationOccurred(.error)
+                        } else {
+                            UINotificationFeedbackGenerator().notificationOccurred(.success)
+                        }
+                        ruleToDelete = nil
+                    }
+                }
+            } message: {
+                Text("delete_recurring_message")
+            }
+            .alert(L("error"), isPresented: .init(
+                get: { viewModel.errorMessage != nil },
+                set: { if !$0 { viewModel.errorMessage = nil } }
+            )) {
+                Button(L("ok")) { viewModel.errorMessage = nil }
+            } message: {
+                Text(viewModel.errorMessage ?? "")
             }
             .sheet(isPresented: $showAddRecurring) {
                 AddRecurringView {

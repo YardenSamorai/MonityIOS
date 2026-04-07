@@ -1,5 +1,5 @@
 const express = require('express');
-const { RecurringRule, Category } = require('../models');
+const { RecurringRule, Category, Transaction } = require('../models');
 const { authMiddleware } = require('../middleware/auth');
 const { processRecurringRules } = require('../services/recurringService');
 
@@ -79,10 +79,17 @@ router.put('/:id', async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
   try {
-    const deleted = await RecurringRule.destroy({
+    const rule = await RecurringRule.findOne({
       where: { id: req.params.id, userId: req.userId },
     });
-    if (!deleted) return res.status(404).json({ error: 'Recurring rule not found' });
+    if (!rule) return res.status(404).json({ error: 'Recurring rule not found' });
+
+    await Transaction.update(
+      { recurringRuleId: null },
+      { where: { recurringRuleId: rule.id } }
+    );
+
+    await rule.destroy();
     res.json({ success: true });
   } catch (err) {
     console.error('Delete recurring error:', err);

@@ -223,6 +223,42 @@
 "per_installment" = "לתשלום";
 "single_payment" = "תשלום אחד";
 
+/* Household */
+"household" = "משק בית";
+"create_household" = "יצירת משק בית";
+"household_empty_title" = "נהלו יחד";
+"household_empty_subtitle" = "צרו משק בית משותף כדי לנהל הוצאות יחד עם בן/בת הזוג";
+"household_setup_title" = "הגדרת משק בית";
+"household_setup_subtitle" = "תנו שם למשק הבית המשותף שלכם";
+"household_name" = "שם משק הבית";
+"household_name_placeholder" = "לדוגמה: הבית שלנו";
+"invite_partner" = "הזמנת בן/בת זוג";
+"invite_partner_title" = "הזמנת בן/בת זוג";
+"invite_partner_subtitle" = "הזינו את האימייל של בן/בת הזוג כדי שיוכלו להצטרף";
+"partner_email_placeholder" = "partner@email.com";
+"send_invitation" = "שלח הזמנה";
+"invitation_sent" = "ההזמנה נשלחה בהצלחה!";
+"household_skip_invite" = "אעשה זאת מאוחר יותר";
+"household_created_success" = "משק הבית נוצר!";
+"household_created_message" = "עכשיו אפשר להזמין את בן/בת הזוג לנהל כספים יחד";
+"household_owner" = "בעלים";
+"household_member" = "חבר/ה";
+"household_members" = "חברים";
+"household_settings" = "משק בית";
+"household_not_set" = "לא הוגדר";
+"shared_balance" = "יתרה משותפת";
+"pending_invitation" = "הזמנה ממתינה";
+"pending_invitations" = "הזמנות ממתינות";
+"invited_you" = "הזמין/ה אותך להצטרף";
+"accept" = "קבל";
+"decline" = "דחה";
+"leave_household" = "עזוב משק בית";
+"dissolve_household" = "פרק משק בית";
+"leave_household_confirm" = "לעזוב את משק הבית?";
+"leave_household_message" = "לא תראה יותר את הנתונים המשותפים ממשק הבית הזה.";
+"leave_household_owner_message" = "כבעלים, עזיבה תפרק את משק הבית לכל החברים.";
+"household_no_transactions_message" = "תנועות משני בני הזוג יופיעו כאן";
+
 /* General */
 "loading" = "טוען...";
 "error" = "שגיאה";

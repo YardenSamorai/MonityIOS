@@ -1,5 +1,10 @@
 import Foundation
 
+struct TransactionUser: Codable {
+    let id: String
+    let name: String
+}
+
 struct Transaction: Codable, Identifiable {
     let id: String
     var amount: Double
@@ -16,6 +21,7 @@ struct Transaction: Codable, Identifiable {
     var installmentCount: Int?
     var installmentGroupId: String?
     let createdAt: String?
+    var user: TransactionUser?
 
     enum TransactionType: String, Codable, CaseIterable {
         case expense
@@ -27,6 +33,7 @@ struct Transaction: Codable, Identifiable {
         case categoryId, recurringRuleId, creditCardId, isBilled
         case installmentNumber, installmentCount, installmentGroupId, createdAt
         case category = "Category"
+        case user = "User"
     }
 }
 

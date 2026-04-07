@@ -68,6 +68,11 @@
 		WW00000014WDGT0014 /* MonityLockScreenWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = WW00000004WDGT0004 /* MonityLockScreenWidget.swift */; };
 		WW00000015WDGT0015 /* SharedModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = WW00000005WDGT0005 /* SharedModels.swift */; };
 		WW00000081WDGT0081 /* MonityWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = WW00000020WDGT0020 /* MonityWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		HH00000001HHBF0001 /* Household.swift in Sources */ = {isa = PBXBuildFile; fileRef = HH00000011HHRF0011 /* Household.swift */; };
+		HH00000002HHBF0002 /* HouseholdViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = HH00000012HHRF0012 /* HouseholdViewModel.swift */; };
+		HH00000003HHBF0003 /* HouseholdView.swift in Sources */ = {isa = PBXBuildFile; fileRef = HH00000013HHRF0013 /* HouseholdView.swift */; };
+		HH00000004HHBF0004 /* HouseholdSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = HH00000014HHRF0014 /* HouseholdSetupView.swift */; };
+		HH00000005HHBF0005 /* HouseholdSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = HH00000015HHRF0015 /* HouseholdSettingsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -159,6 +164,11 @@
 		WW00000004WDGT0004 /* MonityLockScreenWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonityLockScreenWidget.swift; sourceTree = "<group>"; };
 		WW00000005WDGT0005 /* SharedModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedModels.swift; sourceTree = "<group>"; };
 		WW00000020WDGT0020 /* MonityWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = MonityWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		HH00000011HHRF0011 /* Household.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Household.swift; sourceTree = "<group>"; };
+		HH00000012HHRF0012 /* HouseholdViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HouseholdViewModel.swift; sourceTree = "<group>"; };
+		HH00000013HHRF0013 /* HouseholdView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HouseholdView.swift; sourceTree = "<group>"; };
+		HH00000014HHRF0014 /* HouseholdSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HouseholdSetupView.swift; sourceTree = "<group>"; };
+		HH00000015HHRF0015 /* HouseholdSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HouseholdSettingsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -233,6 +243,7 @@
 				7D672D8D8B44C8EE666BF1C3 /* ChartsViewModel.swift */,
 				690D5E5626C441AD03BDAF30 /* DashboardViewModel.swift */,
 				DD00000000000003CARD0003 /* CreditCardViewModel.swift */,
+				HH00000012HHRF0012 /* HouseholdViewModel.swift */,
 				CC00000000000001REC00001 /* RecurringViewModel.swift */,
 				4BED7725A381038FF8A3D1C1 /* SettingsViewModel.swift */,
 				5FBA8CFCC981604E42B3BA8A /* TransactionViewModel.swift */,
@@ -344,6 +355,7 @@
 				C8E3754C54FA75465C5199F6 /* Category.swift */,
 				DD00000000000001CARD0001 /* CreditCard.swift */,
 				50BE1C4F027995D2692EA996 /* Currency.swift */,
+				HH00000011HHRF0011 /* Household.swift */,
 				DE1B99D8FD1D3829BCB98346 /* RecurringRule.swift */,
 				53E472E3C151BB45ABC774D6 /* Transaction.swift */,
 				34F295D8A999DA7F8AAF32E7 /* User.swift */,
@@ -351,11 +363,22 @@
 			path = Models;
 			sourceTree = "<group>";
 		};
+		HH00000020HHGR0020 /* Household */ = {
+			isa = PBXGroup;
+			children = (
+				HH00000013HHRF0013 /* HouseholdView.swift */,
+				HH00000014HHRF0014 /* HouseholdSetupView.swift */,
+				HH00000015HHRF0015 /* HouseholdSettingsView.swift */,
+			);
+			path = Household;
+			sourceTree = "<group>";
+		};
 		D701AEAB1385139377008053 /* Views */ = {
 			isa = PBXGroup;
 			children = (
 				B20C1DA372EEE7BE15ECA425 /* Auth */,
 				1AF7FA562F543BC6BD7AB53B /* Dashboard */,
+				HH00000020HHGR0020 /* Household */,
 				C3D4E5F607182930A1B2C3D4 /* Onboarding */,
 				0A68AB3E8AB3E55A177DAD1F /* Transactions */,
 				CACCA6A7ADBF06A900A82B95 /* Budgets */,
@@ -551,6 +574,11 @@
 				EE00000000000003SHRM0001 /* SharedDataManager.swift in Sources */,
 				EE00000000000005NOTM0001 /* NotificationManager.swift in Sources */,
 				EE00000000000007LOCK0001 /* LockScreenView.swift in Sources */,
+				HH00000001HHBF0001 /* Household.swift in Sources */,
+				HH00000002HHBF0002 /* HouseholdViewModel.swift in Sources */,
+				HH00000003HHBF0003 /* HouseholdView.swift in Sources */,
+				HH00000004HHBF0004 /* HouseholdSetupView.swift in Sources */,
+				HH00000005HHBF0005 /* HouseholdSettingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

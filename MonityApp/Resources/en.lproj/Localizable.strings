@@ -223,6 +223,42 @@
 "per_installment" = "per installment";
 "single_payment" = "Single Payment";
 
+/* Household */
+"household" = "Household";
+"create_household" = "Create Household";
+"household_empty_title" = "Manage Together";
+"household_empty_subtitle" = "Create a shared household to manage expenses together with your partner";
+"household_setup_title" = "Set Up Your Household";
+"household_setup_subtitle" = "Give your shared household a name";
+"household_name" = "Household Name";
+"household_name_placeholder" = "e.g. Our Home";
+"invite_partner" = "Invite Partner";
+"invite_partner_title" = "Invite Your Partner";
+"invite_partner_subtitle" = "Enter your partner's email so they can join your household";
+"partner_email_placeholder" = "partner@email.com";
+"send_invitation" = "Send Invitation";
+"invitation_sent" = "Invitation sent successfully!";
+"household_skip_invite" = "I'll do this later";
+"household_created_success" = "Household Created!";
+"household_created_message" = "You can now invite your partner to manage finances together";
+"household_owner" = "Owner";
+"household_member" = "Member";
+"household_members" = "Members";
+"household_settings" = "Household";
+"household_not_set" = "Not set up";
+"shared_balance" = "Shared Balance";
+"pending_invitation" = "Pending Invitation";
+"pending_invitations" = "Pending Invitations";
+"invited_you" = "invited you to join";
+"accept" = "Accept";
+"decline" = "Decline";
+"leave_household" = "Leave Household";
+"dissolve_household" = "Dissolve Household";
+"leave_household_confirm" = "Leave Household?";
+"leave_household_message" = "You will no longer see shared data from this household.";
+"leave_household_owner_message" = "As the owner, leaving will dissolve the household for all members.";
+"household_no_transactions_message" = "Transactions from both partners will appear here";
+
 /* General */
 "loading" = "Loading...";
 "error" = "Error";

@@ -1,6 +1,6 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
-const { User } = require('../models');
+const { User, HouseholdMember } = require('../models');
 const { generateToken, authMiddleware } = require('../middleware/auth');
 const { seedDefaultCategories } = require('../seeders/defaultCategories');
 
@@ -32,6 +32,11 @@ router.post('/register', async (req, res) => {
     });
 
     await seedDefaultCategories(user.id);
+
+    await HouseholdMember.update(
+      { userId: user.id },
+      { where: { invitedEmail: email.toLowerCase(), status: 'pending', userId: null } }
+    );
 
     const token = generateToken(user.id);
     res.status(201).json({
@@ -75,6 +80,21 @@ router.post('/login', async (req, res) => {
       await seedDefaultCategories(user.id);
     }
 
+    await HouseholdMember.update(
+      { userId: user.id },
+      { where: { invitedEmail: user.email, status: 'pending', userId: null } }
+    );
+
+    const pendingCount = await HouseholdMember.count({
+      where: {
+        status: 'pending',
+        [require('sequelize').Op.or]: [
+          { userId: user.id },
+          { invitedEmail: user.email },
+        ],
+      },
+    });
+
     const token = generateToken(user.id);
     res.json({
       token,
@@ -86,6 +106,7 @@ router.post('/login', async (req, res) => {
         locale: user.locale,
         onboardingCompleted: user.onboardingCompleted,
       },
+      pendingInvitations: pendingCount,
     });
   } catch (err) {
     console.error('Login error:', err);

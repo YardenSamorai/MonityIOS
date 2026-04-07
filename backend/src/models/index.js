@@ -4,6 +4,8 @@ const Transaction = require('./Transaction');
 const Budget = require('./Budget');
 const RecurringRule = require('./RecurringRule');
 const CreditCard = require('./CreditCard');
+const Household = require('./Household');
+const HouseholdMember = require('./HouseholdMember');
 
 User.hasMany(Category, { foreignKey: 'userId', onDelete: 'CASCADE' });
 Category.belongsTo(User, { foreignKey: 'userId' });
@@ -35,4 +37,12 @@ CreditCard.belongsTo(User, { foreignKey: 'userId' });
 CreditCard.hasMany(Transaction, { foreignKey: 'creditCardId', onDelete: 'SET NULL' });
 Transaction.belongsTo(CreditCard, { foreignKey: 'creditCardId' });
 
-module.exports = { User, Category, Transaction, Budget, RecurringRule, CreditCard };
+Household.hasMany(HouseholdMember, { foreignKey: 'householdId', onDelete: 'CASCADE' });
+HouseholdMember.belongsTo(Household, { foreignKey: 'householdId' });
+
+User.hasMany(HouseholdMember, { foreignKey: 'userId', onDelete: 'CASCADE' });
+HouseholdMember.belongsTo(User, { foreignKey: 'userId' });
+
+Household.belongsTo(User, { as: 'creator', foreignKey: 'createdBy' });
+
+module.exports = { User, Category, Transaction, Budget, RecurringRule, CreditCard, Household, HouseholdMember };

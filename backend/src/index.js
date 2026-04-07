@@ -12,6 +12,7 @@ const recurringRoutes = require('./routes/recurring');
 const exportRoutes = require('./routes/export');
 const currencyRoutes = require('./routes/currencies');
 const creditCardRoutes = require('./routes/creditCards');
+const householdRoutes = require('./routes/household');
 const { startRecurringJob } = require('./services/recurringService');
 
 const app = express();
@@ -32,6 +33,7 @@ app.use('/api/recurring', recurringRoutes);
 app.use('/api/export', exportRoutes);
 app.use('/api/currencies', currencyRoutes);
 app.use('/api/credit-cards', creditCardRoutes);
+app.use('/api/household', householdRoutes);
 
 app.use((err, _req, res, _next) => {
   console.error(err.stack);

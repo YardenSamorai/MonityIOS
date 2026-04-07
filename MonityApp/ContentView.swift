@@ -19,23 +19,29 @@ struct ContentView: View {
                 }
                 .tag(1)
 
+            HouseholdView()
+                .tabItem {
+                    Label("household", systemImage: "person.2.fill")
+                }
+                .tag(2)
+
             CreditCardListView()
                 .tabItem {
                     Label("credit_cards", systemImage: "creditcard.fill")
                 }
-                .tag(2)
+                .tag(3)
 
             ChartsView()
                 .tabItem {
                     Label("charts", systemImage: "chart.pie.fill")
                 }
-                .tag(3)
+                .tag(4)
 
             SettingsView()
                 .tabItem {
                     Label("settings", systemImage: "gearshape.fill")
                 }
-                .tag(4)
+                .tag(5)
         }
         .tint(.accentColor)
     }
