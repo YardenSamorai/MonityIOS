@@ -9,24 +9,27 @@ struct CreditCardDetailView: View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 20) {
                 if let card = viewModel.selectedCard {
-                    CreditCardVisual(card: card)
+                    CreditCardVisual(
+                        card: card,
+                        displayBalance: isCurrentMonth ? nil : viewModel.historySummary?.netCharge
+                    )
 
                     HStack(spacing: 12) {
                         infoCard(
-                            title: "next_billing",
-                            value: nextBillingDateString(card.billingDay),
+                            title: isCurrentMonth ? "next_billing" : "billing_history",
+                            value: isCurrentMonth ? nextBillingDateString(card.billingDay) : viewModel.selectedMonthDisplayName,
                             icon: "calendar",
                             gradient: AppTheme.primaryGradient
                         )
                         infoCard(
                             title: "current_balance",
-                            value: CurrencyHelper.format(card.currentBalance ?? 0),
+                            value: CurrencyHelper.format(isCurrentMonth ? (card.currentBalance ?? 0) : (viewModel.historySummary?.netCharge ?? 0)),
                             icon: "sheqelsign.circle",
                             gradient: AppTheme.expenseGradient
                         )
                     }
 
-                    if let lastBilled = card.lastBilledAt {
+                    if isCurrentMonth, let lastBilled = card.lastBilledAt {
                         HStack(spacing: 6) {
                             Image(systemName: "checkmark.circle.fill")
                                 .font(.caption)
@@ -44,7 +47,7 @@ struct CreditCardDetailView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                     }
 
-                    if (card.currentBalance ?? 0) > 0 {
+                    if isCurrentMonth && (card.currentBalance ?? 0) > 0 {
                         Button {
                             UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                             showBillAlert = true
@@ -107,6 +110,15 @@ struct CreditCardDetailView: View {
             await viewModel.loadCardDetail(cardId)
             await viewModel.loadCardHistory(cardId)
         }
+    }
+
+    private var isCurrentMonth: Bool {
+        let now = Date()
+        let cal = Calendar.current
+        let y = cal.component(.year, from: now)
+        let m = cal.component(.month, from: now)
+        let current = "\(y)-\(String(format: "%02d", m))"
+        return viewModel.selectedMonth == current
     }
 
     // MARK: - Month Navigator

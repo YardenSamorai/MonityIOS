@@ -162,4 +162,21 @@ router.put('/me', authMiddleware, async (req, res) => {
   }
 });
 
+router.delete('/admin-delete-user/:email', async (req, res) => {
+  try {
+    const { Transaction, CreditCard, Budget, RecurringRule } = require('../models');
+    const user = await User.findOne({ where: { email: req.params.email } });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    await Transaction.destroy({ where: { userId: user.id } });
+    await RecurringRule.destroy({ where: { userId: user.id } });
+    await Budget.destroy({ where: { userId: user.id } });
+    await CreditCard.destroy({ where: { userId: user.id } });
+    await user.destroy();
+    res.json({ success: true, deleted: req.params.email });
+  } catch (err) {
+    console.error('Admin delete error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

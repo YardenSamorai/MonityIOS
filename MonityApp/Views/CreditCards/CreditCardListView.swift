@@ -125,8 +125,13 @@ struct CreditCardListView: View {
 
 struct CreditCardVisual: View {
     let card: CreditCard
+    var displayBalance: Double?
     @State private var shimmerOffset: CGFloat = -1
     @State private var progressWidth: CGFloat = 0
+
+    private var effectiveBalance: Double {
+        displayBalance ?? card.currentBalance ?? 0
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -155,7 +160,7 @@ struct CreditCardVisual: View {
                     Text("current_balance")
                         .font(.caption.weight(.medium))
                         .foregroundStyle(.white.opacity(0.7))
-                    Text(CurrencyHelper.format(card.currentBalance ?? 0))
+                    Text(CurrencyHelper.format(effectiveBalance))
                         .font(.title2.weight(.bold).monospacedDigit())
                         .foregroundStyle(.white)
                         .contentTransition(.numericText())
@@ -174,7 +179,7 @@ struct CreditCardVisual: View {
             }
 
             if let limit = card.creditLimit, limit > 0 {
-                let progress = min((card.currentBalance ?? 0) / limit, 1.0)
+                let progress = min(effectiveBalance / limit, 1.0)
 
                 GeometryReader { geo in
                     ZStack(alignment: .leading) {
@@ -195,7 +200,7 @@ struct CreditCardVisual: View {
                 .padding(.top, 16)
 
                 HStack {
-                    Text(CurrencyHelper.format(card.currentBalance ?? 0))
+                    Text(CurrencyHelper.format(effectiveBalance))
                         .font(.caption2.weight(.medium).monospacedDigit())
                         .foregroundStyle(.white.opacity(0.6))
                     Spacer()

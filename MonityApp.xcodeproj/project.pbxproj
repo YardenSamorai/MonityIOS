@@ -55,13 +55,13 @@
 		E05FA461F276C48F7F7EC043 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 81BCDB0F6A8C757192C99420 /* Localizable.strings */; };
 		E64AA5CD8F4B8F4F0EFF5908 /* DateHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 912F28646DD6F6D538EB6C08 /* DateHelper.swift */; };
 		EB839BA7702A2545218777E3 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A9D40F2657F1DAA68987FD5 /* LoginView.swift */; };
-		F955FE5A0F8A9389861B1A83 /* Category.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8E3754C54FA75465C5199F6 /* Category.swift */; };
-		FF30798542BAD547B4D000AD /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E276664F67E137FF8EB414A /* Constants.swift */; };
-		FF00000000000001ASST0001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FF00000000000002ASST0002 /* Assets.xcassets */; };
 		EE00000000000001BIOM0001 /* BiometricAuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE00000000000002BIOM0002 /* BiometricAuthManager.swift */; };
 		EE00000000000003SHRM0001 /* SharedDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE00000000000004SHRM0002 /* SharedDataManager.swift */; };
 		EE00000000000005NOTM0001 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE00000000000006NOTM0002 /* NotificationManager.swift */; };
 		EE00000000000007LOCK0001 /* LockScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE00000000000008LOCK0002 /* LockScreenView.swift */; };
+		F955FE5A0F8A9389861B1A83 /* Category.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8E3754C54FA75465C5199F6 /* Category.swift */; };
+		FF00000000000001ASST0001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FF00000000000002ASST0002 /* Assets.xcassets */; };
+		FF30798542BAD547B4D000AD /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E276664F67E137FF8EB414A /* Constants.swift */; };
 		WW00000011WDGT0011 /* MonityWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = WW00000001WDGT0001 /* MonityWidgetBundle.swift */; };
 		WW00000012WDGT0012 /* MonityBalanceWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = WW00000002WDGT0002 /* MonityBalanceWidget.swift */; };
 		WW00000013WDGT0013 /* MonitySummaryWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = WW00000003WDGT0003 /* MonitySummaryWidget.swift */; };
@@ -95,7 +95,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		FF00000000000002ASST0002 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		06EE3B655CA53E19209967F3 /* CategoryPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryPickerView.swift; sourceTree = "<group>"; };
 		08131DA89F6EDAD085546706 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		0D099F6B13EA70088A29C65F /* EmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateView.swift; sourceTree = "<group>"; };
@@ -146,13 +145,14 @@
 		DE1B99D8FD1D3829BCB98346 /* RecurringRule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecurringRule.swift; sourceTree = "<group>"; };
 		DFB4479EE8A2719EE33ACD10 /* Budget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Budget.swift; sourceTree = "<group>"; };
 		E73D09ED9F07A4D957B7631B /* BudgetProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BudgetProgressView.swift; sourceTree = "<group>"; };
-		F0AC532B1A75A00CE1CFA507 /* KeychainHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainHelper.swift; sourceTree = "<group>"; };
-		F1E32D2FD568B4367E80FAF2 /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
-		FEDA035CE48B50C1FB242C31 /* AddTransactionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddTransactionView.swift; sourceTree = "<group>"; };
 		EE00000000000002BIOM0002 /* BiometricAuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricAuthManager.swift; sourceTree = "<group>"; };
 		EE00000000000004SHRM0002 /* SharedDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedDataManager.swift; sourceTree = "<group>"; };
 		EE00000000000006NOTM0002 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
 		EE00000000000008LOCK0002 /* LockScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockScreenView.swift; sourceTree = "<group>"; };
+		F0AC532B1A75A00CE1CFA507 /* KeychainHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainHelper.swift; sourceTree = "<group>"; };
+		F1E32D2FD568B4367E80FAF2 /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
+		FEDA035CE48B50C1FB242C31 /* AddTransactionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddTransactionView.swift; sourceTree = "<group>"; };
+		FF00000000000002ASST0002 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		WW00000001WDGT0001 /* MonityWidgetBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonityWidgetBundle.swift; sourceTree = "<group>"; };
 		WW00000002WDGT0002 /* MonityBalanceWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonityBalanceWidget.swift; sourceTree = "<group>"; };
 		WW00000003WDGT0003 /* MonitySummaryWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonitySummaryWidget.swift; sourceTree = "<group>"; };
@@ -568,6 +568,14 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		WW00000071WDGT0071 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = WW00000050WDGT0050 /* MonityWidgetExtension */;
+			targetProxy = WW00000070WDGT0070 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin PBXVariantGroup section */
 		81BCDB0F6A8C757192C99420 /* Localizable.strings */ = {
 			isa = PBXVariantGroup;
@@ -579,14 +587,6 @@
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */
-
-/* Begin PBXTargetDependency section */
-		WW00000071WDGT0071 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = WW00000050WDGT0050 /* MonityWidgetExtension */;
-			targetProxy = WW00000070WDGT0070 /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		2E27190A32B83B54CF8B1569 /* Debug */ = {
