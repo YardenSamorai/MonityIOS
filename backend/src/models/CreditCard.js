@@ -36,6 +36,10 @@ const CreditCard = sequelize.define('CreditCard', {
     type: DataTypes.DATEONLY,
     allowNull: true,
   },
+  sortOrder: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+  },
 });
 
 module.exports = CreditCard;

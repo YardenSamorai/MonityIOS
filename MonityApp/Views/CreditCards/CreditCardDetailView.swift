@@ -114,33 +114,9 @@ struct CreditCardDetailView: View {
     private var monthNavigator: some View {
         HStack {
             Button {
-                Task { await viewModel.navigateMonth(cardId, direction: -1) }
-            } label: {
-                Image(systemName: "chevron.left")
-                    .font(.body.weight(.semibold))
-                    .foregroundColor(viewModel.canGoBack ? AppTheme.accent : Color.gray.opacity(0.3))
-                    .frame(width: 36, height: 36)
-                    .background(viewModel.canGoBack ? AppTheme.accent.opacity(0.1) : Color.clear)
-                    .clipShape(Circle())
-            }
-            .disabled(!viewModel.canGoBack)
-
-            Spacer()
-
-            VStack(spacing: 2) {
-                Text("billing_history")
-                    .font(.caption2.weight(.medium))
-                    .foregroundStyle(.secondary)
-                Text(viewModel.selectedMonthDisplayName.capitalized)
-                    .font(.headline.weight(.bold))
-            }
-
-            Spacer()
-
-            Button {
                 Task { await viewModel.navigateMonth(cardId, direction: 1) }
             } label: {
-                Image(systemName: "chevron.right")
+                Image(systemName: "chevron.left")
                     .font(.body.weight(.semibold))
                     .foregroundColor(viewModel.canGoForward ? AppTheme.accent : Color.gray.opacity(0.3))
                     .frame(width: 36, height: 36)
@@ -148,6 +124,30 @@ struct CreditCardDetailView: View {
                     .clipShape(Circle())
             }
             .disabled(!viewModel.canGoForward)
+
+            Spacer()
+
+            VStack(spacing: 2) {
+                Text("billing_history")
+                    .font(.caption2.weight(.medium))
+                    .foregroundStyle(.secondary)
+                Text(viewModel.selectedMonthDisplayName)
+                    .font(.headline.weight(.bold))
+            }
+
+            Spacer()
+
+            Button {
+                Task { await viewModel.navigateMonth(cardId, direction: -1) }
+            } label: {
+                Image(systemName: "chevron.right")
+                    .font(.body.weight(.semibold))
+                    .foregroundColor(viewModel.canGoBack ? AppTheme.accent : Color.gray.opacity(0.3))
+                    .frame(width: 36, height: 36)
+                    .background(viewModel.canGoBack ? AppTheme.accent.opacity(0.1) : Color.clear)
+                    .clipShape(Circle())
+            }
+            .disabled(!viewModel.canGoBack)
         }
         .padding(.horizontal, 4)
         .environment(\.layoutDirection, .leftToRight)

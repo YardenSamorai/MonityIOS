@@ -100,13 +100,9 @@ struct DashboardView: View {
                     .foregroundStyle(.white)
 
                 let (from, _) = DateHelper.currentMonthRange()
-                HStack(spacing: 6) {
-                    Text(DateHelper.monthName(from: from))
-                    Image(systemName: "chevron.right")
-                        .font(.caption2.weight(.bold))
-                }
-                .font(.caption.weight(.medium))
-                .foregroundStyle(.white.opacity(0.6))
+                Text(DateHelper.monthName(from: from))
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(.white.opacity(0.6))
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 32)
@@ -240,7 +236,6 @@ struct DashboardView: View {
                 color: AppTheme.expense,
                 gradient: AppTheme.expenseGradient
             )
-            .cardPressEffect()
 
             summaryCard(
                 title: "income",
@@ -253,7 +248,6 @@ struct DashboardView: View {
                 color: AppTheme.income,
                 gradient: AppTheme.incomeGradient
             )
-            .cardPressEffect()
         }
     }
 

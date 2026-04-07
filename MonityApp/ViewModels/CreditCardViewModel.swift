@@ -76,6 +76,24 @@ final class CreditCardViewModel: ObservableObject {
         }
     }
 
+    func moveCard(from source: IndexSet, to destination: Int) {
+        cards.move(fromOffsets: source, toOffset: destination)
+        Task { await saveCardOrder() }
+    }
+
+    func saveCardOrder() async {
+        let orderedIds = cards.map { $0.id }
+        do {
+            let _: [String: Bool] = try await APIClient.shared.request(
+                endpoint: "/credit-cards/reorder",
+                method: "PUT",
+                body: ["orderedIds": orderedIds]
+            )
+        } catch {
+            print("Failed to save card order: \(error)")
+        }
+    }
+
     func loadCardHistory(_ cardId: String, month: String? = nil) async {
         isLoading = true
         errorMessage = nil
@@ -123,7 +141,8 @@ final class CreditCardViewModel: ObservableObject {
         let dateComponents = DateComponents(year: parts[0], month: parts[1], day: 1)
         guard let date = Calendar.current.date(from: dateComponents) else { return selectedMonth }
         let formatter = DateFormatter()
-        formatter.locale = Locale.current
+        let lang = UserDefaults.standard.string(forKey: "app_language") ?? "he"
+        formatter.locale = Locale(identifier: lang)
         formatter.dateFormat = "LLLL yyyy"
         return formatter.string(from: date)
     }

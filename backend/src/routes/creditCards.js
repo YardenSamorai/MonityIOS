@@ -11,7 +11,7 @@ router.get('/', async (req, res) => {
   try {
     const cards = await CreditCard.findAll({
       where: { userId: req.userId },
-      order: [['createdAt', 'DESC']],
+      order: [['sortOrder', 'ASC'], ['createdAt', 'DESC']],
     });
 
     const cardsWithBalance = await Promise.all(
@@ -41,6 +41,26 @@ router.get('/', async (req, res) => {
   } catch (err) {
     console.error('List credit cards error:', err);
     res.status(500).json({ error: 'Failed to fetch credit cards' });
+  }
+});
+
+router.put('/reorder', async (req, res) => {
+  try {
+    const { orderedIds } = req.body;
+    if (!Array.isArray(orderedIds)) {
+      return res.status(400).json({ error: 'orderedIds array is required' });
+    }
+
+    await Promise.all(
+      orderedIds.map((id, index) =>
+        CreditCard.update({ sortOrder: index }, { where: { id, userId: req.userId } })
+      )
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Reorder credit cards error:', err);
+    res.status(500).json({ error: 'Failed to reorder credit cards' });
   }
 });
 

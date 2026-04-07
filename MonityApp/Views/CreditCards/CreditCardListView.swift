@@ -4,6 +4,7 @@ struct CreditCardListView: View {
     @StateObject private var viewModel = CreditCardViewModel()
     @State private var showAddCard = false
     @State private var appeared = false
+    @State private var isEditing = false
 
     var body: some View {
         NavigationStack {
@@ -17,20 +18,62 @@ struct CreditCardListView: View {
                 } else {
                     VStack(spacing: 20) {
                         ForEach(Array(viewModel.cards.enumerated()), id: \.element.id) { index, card in
-                            NavigationLink {
-                                CreditCardDetailView(cardId: card.id)
-                            } label: {
-                                CreditCardVisual(card: card)
-                                    .staggeredAppear(appeared: appeared, index: index)
-                                    .cardPressEffect()
-                            }
-                            .buttonStyle(.plain)
-                            .contextMenu {
-                                Button(role: .destructive) {
-                                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                                    Task { await viewModel.deleteCard(card.id) }
+                            if isEditing {
+                                HStack(spacing: 12) {
+                                    VStack(spacing: 8) {
+                                        Button {
+                                            guard index > 0 else { return }
+                                            withAnimation(.spring(response: 0.3)) {
+                                                viewModel.cards.swapAt(index, index - 1)
+                                            }
+                                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                            Task { await viewModel.saveCardOrder() }
+                                        } label: {
+                                            Image(systemName: "chevron.up")
+                                                .font(.caption.weight(.bold))
+                                                .foregroundColor(index > 0 ? AppTheme.accent : Color.gray.opacity(0.3))
+                                                .frame(width: 32, height: 32)
+                                                .background(Color(.systemGray5))
+                                                .clipShape(Circle())
+                                        }
+                                        .disabled(index == 0)
+
+                                        Button {
+                                            guard index < viewModel.cards.count - 1 else { return }
+                                            withAnimation(.spring(response: 0.3)) {
+                                                viewModel.cards.swapAt(index, index + 1)
+                                            }
+                                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                            Task { await viewModel.saveCardOrder() }
+                                        } label: {
+                                            Image(systemName: "chevron.down")
+                                                .font(.caption.weight(.bold))
+                                                .foregroundColor(index < viewModel.cards.count - 1 ? AppTheme.accent : Color.gray.opacity(0.3))
+                                                .frame(width: 32, height: 32)
+                                                .background(Color(.systemGray5))
+                                                .clipShape(Circle())
+                                        }
+                                        .disabled(index == viewModel.cards.count - 1)
+                                    }
+
+                                    CreditCardVisual(card: card)
+                                }
+                                .transition(.opacity)
+                            } else {
+                                NavigationLink {
+                                    CreditCardDetailView(cardId: card.id)
                                 } label: {
-                                    Label("delete", systemImage: "trash")
+                                    CreditCardVisual(card: card)
+                                        .staggeredAppear(appeared: appeared, index: index)
+                                }
+                                .buttonStyle(.plain)
+                                .contextMenu {
+                                    Button(role: .destructive) {
+                                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                                        Task { await viewModel.deleteCard(card.id) }
+                                    } label: {
+                                        Label("delete", systemImage: "trash")
+                                    }
                                 }
                             }
                         }
@@ -42,6 +85,16 @@ struct CreditCardListView: View {
             .background(Color(.systemGroupedBackground))
             .navigationTitle("credit_cards")
             .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    if viewModel.cards.count > 1 {
+                        Button {
+                            withAnimation(.spring(response: 0.3)) { isEditing.toggle() }
+                        } label: {
+                            Text(isEditing ? "done" : "edit")
+                                .font(.subheadline.weight(.medium))
+                        }
+                    }
+                }
                 ToolbarItem(placement: .primaryAction) {
                     Button {
                         UIImpactFeedbackGenerator(style: .medium).impactOccurred()

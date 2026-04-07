@@ -94,6 +94,28 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'Amount and type are required' });
     }
 
+    async function shouldMarkBilled(cardId, txnDate) {
+      if (!cardId || !txnDate) return false;
+      const card = await CreditCard.findByPk(cardId);
+      if (!card) return false;
+
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const billingDay = card.billingDay;
+
+      let cycleStart;
+      if (today.getDate() >= billingDay) {
+        cycleStart = new Date(today.getFullYear(), today.getMonth(), billingDay);
+      } else {
+        cycleStart = new Date(today.getFullYear(), today.getMonth() - 1, billingDay);
+      }
+
+      const [y, m, d] = txnDate.split('-').map(Number);
+      const txnDateObj = new Date(y, m - 1, d);
+
+      return txnDateObj < cycleStart;
+    }
+
     const numInstallments = parseInt(installments) || 1;
 
     if (numInstallments > 1 && creditCardId) {
@@ -101,30 +123,34 @@ router.post('/', async (req, res) => {
       const perInstallment = Math.round((amount / numInstallments) * 100) / 100;
       const remainder = Math.round((amount - perInstallment * numInstallments) * 100) / 100;
 
-      const baseDate = date ? new Date(date) : new Date();
+      const dateStr = date || new Date().toISOString().split('T')[0];
+      const [baseY, baseM, baseD] = dateStr.split('-').map(Number);
       let firstTransaction = null;
 
       for (let i = 0; i < numInstallments; i++) {
-        const installmentDate = new Date(baseDate.getFullYear(), baseDate.getMonth() + i, baseDate.getDate());
-        const y = installmentDate.getFullYear();
-        const m = String(installmentDate.getMonth() + 1).padStart(2, '0');
-        const d = String(installmentDate.getDate()).padStart(2, '0');
-        const dateStr = `${y}-${m}-${d}`;
+        let newMonth = baseM + i;
+        let newYear = baseY;
+        while (newMonth > 12) { newMonth -= 12; newYear += 1; }
+        const daysInMonth = new Date(newYear, newMonth, 0).getDate();
+        const day = Math.min(baseD, daysInMonth);
+        const installmentDateStr = `${newYear}-${String(newMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 
         const installmentAmount = i === 0 ? perInstallment + remainder : perInstallment;
+        const billed = await shouldMarkBilled(creditCardId, installmentDateStr);
 
         const txn = await Transaction.create({
           amount: installmentAmount,
           currency: currency || 'ILS',
           type,
           note: note || '',
-          date: dateStr,
+          date: installmentDateStr,
           categoryId,
           creditCardId,
           userId: req.userId,
           installmentNumber: i + 1,
           installmentCount: numInstallments,
           installmentGroupId: groupId,
+          isBilled: billed,
         });
 
         if (i === 0) firstTransaction = txn;
@@ -140,15 +166,19 @@ router.post('/', async (req, res) => {
       return res.status(201).json({ transaction: full });
     }
 
+    const txnDate = date || new Date().toISOString().split('T')[0];
+    const billed = await shouldMarkBilled(creditCardId, txnDate);
+
     const transaction = await Transaction.create({
       amount,
       currency: currency || 'ILS',
       type,
       note: note || '',
-      date: date || new Date(),
+      date: txnDate,
       categoryId,
       creditCardId: creditCardId || null,
       userId: req.userId,
+      isBilled: billed,
     });
 
     const full = await Transaction.findByPk(transaction.id, {

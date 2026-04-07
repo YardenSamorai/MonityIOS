@@ -10,6 +10,7 @@ struct CreditCard: Codable, Identifiable {
     var isActive: Bool
     var currentBalance: Double?
     var lastBilledAt: String?
+    var sortOrder: Int?
 }
 
 struct CreditCardListResponse: Codable {
