@@ -217,6 +217,12 @@
 "notif_card_title" = "Card Reminder";
 "notif_card_body" = "%@ billing is coming up in 2 days";
 
+/* Installments */
+"installments" = "Installments";
+"installments_count" = "Installments";
+"per_installment" = "per installment";
+"single_payment" = "Single Payment";
+
 /* General */
 "loading" = "Loading...";
 "error" = "Error";

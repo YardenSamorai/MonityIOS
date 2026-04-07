@@ -15,8 +15,20 @@ struct TransactionRowView: View {
                 .animation(.spring(response: 0.4, dampingFraction: 0.6).delay(0.1), value: iconAppeared)
 
             VStack(alignment: .leading, spacing: 3) {
-                Text(transaction.category?.localizedName ?? L("uncategorized"))
-                    .font(.subheadline.weight(.semibold))
+                HStack(spacing: 6) {
+                    Text(transaction.category?.localizedName ?? L("uncategorized"))
+                        .font(.subheadline.weight(.semibold))
+
+                    if let count = transaction.installmentCount, let number = transaction.installmentNumber, count > 1 {
+                        Text("(\(number)/\(count))")
+                            .font(.caption2.weight(.medium))
+                            .foregroundStyle(AppTheme.accent)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(AppTheme.accent.opacity(0.12))
+                            .clipShape(Capsule())
+                    }
+                }
                 if !transaction.note.isEmpty {
                     Text(transaction.note)
                         .font(.caption)

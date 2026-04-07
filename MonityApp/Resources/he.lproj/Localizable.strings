@@ -217,6 +217,12 @@
 "notif_card_title" = "תזכורת כרטיס";
 "notif_card_body" = "חיוב %@ מתקרב בעוד יומיים";
 
+/* Installments */
+"installments" = "תשלומים";
+"installments_count" = "מספר תשלומים";
+"per_installment" = "לתשלום";
+"single_payment" = "תשלום אחד";
+
 /* General */
 "loading" = "טוען...";
 "error" = "שגיאה";

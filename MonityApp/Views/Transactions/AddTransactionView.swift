@@ -17,6 +17,7 @@ struct AddTransactionView: View {
     @State private var formAppeared = false
     @State private var showSuccess = false
     @State private var saveButtonScale: CGFloat = 1.0
+    @State private var installments: Int = 1
 
     var editingTransaction: Transaction?
     var onSave: (() -> Void)?
@@ -88,6 +89,31 @@ struct AddTransactionView: View {
                                     }
                                     .pickerStyle(.menu)
                                     .tint(.secondary)
+                                }
+                            }
+
+                            if selectedCreditCardId != nil && type == .expense && !isEditing {
+                                Divider().padding(.leading, 52)
+
+                                fieldRow(icon: "repeat", label: "installments_count") {
+                                    Stepper(value: $installments, in: 1...36) {
+                                        Text(installments == 1 ? L("single_payment") : "\(installments) \(L("installments"))")
+                                            .font(.subheadline)
+                                            .foregroundStyle(.secondary)
+                                    }
+                                }
+
+                                if installments > 1, let amount = Double(amountText), amount > 0 {
+                                    let perInstallment = (amount / Double(installments) * 100).rounded() / 100
+                                    HStack(spacing: 4) {
+                                        Image(systemName: "info.circle")
+                                            .font(.caption2)
+                                        Text("\(installments) x \(CurrencyHelper.format(perInstallment, currency: currency))")
+                                            .font(.caption)
+                                    }
+                                    .foregroundStyle(.secondary)
+                                    .padding(.horizontal, 54)
+                                    .padding(.bottom, 8)
                                 }
                             }
                         }
@@ -229,7 +255,10 @@ struct AddTransactionView: View {
 
     private func typeButton(_ t: Transaction.TransactionType, label: LocalizedStringKey, icon: String) -> some View {
         Button {
-            withAnimation(.spring(response: 0.3)) { type = t }
+            withAnimation(.spring(response: 0.3)) {
+                type = t
+                if t == .income { installments = 1 }
+            }
         } label: {
             HStack(spacing: 6) {
                 Image(systemName: icon)
@@ -279,7 +308,8 @@ struct AddTransactionView: View {
                 try await viewModel.createTransaction(
                     amount: amount, currency: currency, type: type,
                     note: note, date: date, categoryId: selectedCategoryId,
-                    creditCardId: selectedCreditCardId
+                    creditCardId: selectedCreditCardId,
+                    installments: installments
                 )
             }
             UINotificationFeedbackGenerator().notificationOccurred(.success)

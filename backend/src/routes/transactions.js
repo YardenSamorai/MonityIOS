@@ -1,5 +1,6 @@
 const express = require('express');
 const { Op } = require('sequelize');
+const { v4: uuidv4 } = require('uuid');
 const sequelize = require('../config/database');
 const { Transaction, Category, CreditCard } = require('../models');
 const { authMiddleware } = require('../middleware/auth');
@@ -79,10 +80,56 @@ router.get('/summary', async (req, res) => {
 
 router.post('/', async (req, res) => {
   try {
-    const { amount, currency, type, note, date, categoryId, creditCardId } = req.body;
+    const { amount, currency, type, note, date, categoryId, creditCardId, installments } = req.body;
 
     if (!amount || !type) {
       return res.status(400).json({ error: 'Amount and type are required' });
+    }
+
+    const numInstallments = parseInt(installments) || 1;
+
+    if (numInstallments > 1 && creditCardId) {
+      const groupId = uuidv4();
+      const perInstallment = Math.round((amount / numInstallments) * 100) / 100;
+      const remainder = Math.round((amount - perInstallment * numInstallments) * 100) / 100;
+
+      const baseDate = date ? new Date(date) : new Date();
+      let firstTransaction = null;
+
+      for (let i = 0; i < numInstallments; i++) {
+        const installmentDate = new Date(baseDate.getFullYear(), baseDate.getMonth() + i, baseDate.getDate());
+        const y = installmentDate.getFullYear();
+        const m = String(installmentDate.getMonth() + 1).padStart(2, '0');
+        const d = String(installmentDate.getDate()).padStart(2, '0');
+        const dateStr = `${y}-${m}-${d}`;
+
+        const installmentAmount = i === 0 ? perInstallment + remainder : perInstallment;
+
+        const txn = await Transaction.create({
+          amount: installmentAmount,
+          currency: currency || 'ILS',
+          type,
+          note: note || '',
+          date: dateStr,
+          categoryId,
+          creditCardId,
+          userId: req.userId,
+          installmentNumber: i + 1,
+          installmentCount: numInstallments,
+          installmentGroupId: groupId,
+        });
+
+        if (i === 0) firstTransaction = txn;
+      }
+
+      const full = await Transaction.findByPk(firstTransaction.id, {
+        include: [
+          { model: Category, attributes: ['id', 'name', 'nameHe', 'icon', 'color'] },
+          { model: CreditCard, attributes: ['id', 'name', 'lastFourDigits', 'color'] },
+        ],
+      });
+
+      return res.status(201).json({ transaction: full });
     }
 
     const transaction = await Transaction.create({

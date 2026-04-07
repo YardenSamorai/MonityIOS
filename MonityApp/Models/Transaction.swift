@@ -12,6 +12,9 @@ struct Transaction: Codable, Identifiable {
     var recurringRuleId: String?
     var creditCardId: String?
     var isBilled: Bool?
+    var installmentNumber: Int?
+    var installmentCount: Int?
+    var installmentGroupId: String?
     let createdAt: String?
 
     enum TransactionType: String, Codable, CaseIterable {
@@ -21,7 +24,8 @@ struct Transaction: Codable, Identifiable {
 
     enum CodingKeys: String, CodingKey {
         case id, amount, currency, type, note, date
-        case categoryId, recurringRuleId, creditCardId, isBilled, createdAt
+        case categoryId, recurringRuleId, creditCardId, isBilled
+        case installmentNumber, installmentCount, installmentGroupId, createdAt
         case category = "Category"
     }
 }

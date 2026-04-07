@@ -32,6 +32,18 @@ const Transaction = sequelize.define('Transaction', {
     type: DataTypes.BOOLEAN,
     defaultValue: false,
   },
+  installmentNumber: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
+  installmentCount: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
+  installmentGroupId: {
+    type: DataTypes.UUID,
+    allowNull: true,
+  },
 });
 
 module.exports = Transaction;

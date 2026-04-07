@@ -95,7 +95,8 @@ final class TransactionViewModel: ObservableObject {
         note: String,
         date: Date,
         categoryId: Int?,
-        creditCardId: String? = nil
+        creditCardId: String? = nil,
+        installments: Int = 1
     ) async throws {
         var body: [String: Any] = [
             "amount": amount,
@@ -106,6 +107,7 @@ final class TransactionViewModel: ObservableObject {
         ]
         if let categoryId { body["categoryId"] = categoryId }
         if let creditCardId { body["creditCardId"] = creditCardId }
+        if installments > 1 { body["installments"] = installments }
 
         let _: TransactionSingleResponse = try await APIClient.shared.request(
             endpoint: "/transactions",
