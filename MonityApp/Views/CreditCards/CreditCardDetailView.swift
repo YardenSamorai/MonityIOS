@@ -150,6 +150,7 @@ struct CreditCardDetailView: View {
             .disabled(!viewModel.canGoForward)
         }
         .padding(.horizontal, 4)
+        .environment(\.layoutDirection, .leftToRight)
     }
 
     // MARK: - Monthly Summary

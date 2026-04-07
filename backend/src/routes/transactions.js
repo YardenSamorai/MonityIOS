@@ -51,8 +51,16 @@ router.get('/summary', async (req, res) => {
       if (to) where.date[Op.lte] = to;
     }
 
-    const income = await Transaction.sum('amount', { where: { ...where, type: 'income' } }) || 0;
-    const expense = await Transaction.sum('amount', { where: { ...where, type: 'expense' } }) || 0;
+    const bankWhere = {
+      ...where,
+      [Op.or]: [
+        { creditCardId: null },
+        { isBilled: true },
+      ],
+    };
+
+    const income = await Transaction.sum('amount', { where: { ...bankWhere, type: 'income' } }) || 0;
+    const expense = await Transaction.sum('amount', { where: { ...bankWhere, type: 'expense' } }) || 0;
 
     const byCategory = await Transaction.findAll({
       where: { ...where, type: 'expense' },

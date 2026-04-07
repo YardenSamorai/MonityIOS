@@ -341,7 +341,6 @@ struct DashboardView: View {
                             CreditCardDetailView(cardId: card.id)
                         } label: {
                             miniCreditCard(card)
-                                .cardPressEffect()
                         }
                         .buttonStyle(.plain)
                     }
