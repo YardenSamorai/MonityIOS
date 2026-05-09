@@ -53,7 +53,3 @@ struct CategoryRulesListResponse: Codable {
 struct CategoryRuleSingleResponse: Codable {
     let rule: CategoryRuleModel
 }
-
-struct TrashListResponse: Codable {
-    let transactions: [Transaction]
-}
