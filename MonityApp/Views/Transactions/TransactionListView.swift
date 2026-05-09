@@ -37,38 +37,7 @@ struct TransactionListView: View {
                             ForEach(groupedByDate, id: \.0) { dateString, transactions in
                                 Section {
                                     ForEach(transactions) { txn in
-                                        GlassSurface(cornerRadius: Radius.md, padding: 0, elevation: .flat) {
-                                            TransactionRowView(
-                                                transaction: txn,
-                                                bankBalanceAfter: viewModel.bankBalanceByTransactionId[txn.id],
-                                                displayCurrency: AuthService.shared.currentUser?.preferredCurrency
-                                            )
-                                            .padding(.horizontal, 14)
-                                            .padding(.vertical, 12)
-                                        }
-                                        .contentShape(Rectangle())
-                                        .onTapGesture {
-                                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                                            editingTransaction = txn
-                                        }
-                                        .listRowInsets(EdgeInsets(top: 4, leading: Spacing.screenHorizontal, bottom: 4, trailing: Spacing.screenHorizontal))
-                                        .listRowSeparator(.hidden)
-                                        .listRowBackground(Color.clear)
-                                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                                            Button(role: .destructive) {
-                                                deletingTransaction = txn
-                                            } label: {
-                                                Label("delete", systemImage: "trash")
-                                            }
-                                        }
-                                        .swipeActions(edge: .leading, allowsFullSwipe: true) {
-                                            Button {
-                                                editingTransaction = txn
-                                            } label: {
-                                                Label("edit", systemImage: "pencil")
-                                            }
-                                            .tint(BrandColor.primary)
-                                        }
+                                        transactionRow(txn)
                                     }
                                 } header: {
                                     Text(formatGroupDate(dateString))
@@ -266,6 +235,42 @@ struct TransactionListView: View {
         }
         return DateHelper.display(date)
     }
+
+    @ViewBuilder
+    private func transactionRow(_ txn: Transaction) -> some View {
+        GlassSurface(cornerRadius: Radius.md, padding: 0, elevation: .flat) {
+            TransactionRowView(
+                transaction: txn,
+                bankBalanceAfter: viewModel.bankBalanceByTransactionId[txn.id],
+                displayCurrency: AuthService.shared.currentUser?.preferredCurrency
+            )
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+        }
+        .contentShape(Rectangle())
+        .onTapGesture {
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            editingTransaction = txn
+        }
+        .listRowInsets(EdgeInsets(top: 4, leading: Spacing.screenHorizontal, bottom: 4, trailing: Spacing.screenHorizontal))
+        .listRowSeparator(.hidden)
+        .listRowBackground(Color.clear)
+        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+            Button(role: .destructive) {
+                deletingTransaction = txn
+            } label: {
+                Label("delete", systemImage: "trash")
+            }
+        }
+        .swipeActions(edge: .leading, allowsFullSwipe: true) {
+            Button {
+                editingTransaction = txn
+            } label: {
+                Label("edit", systemImage: "pencil")
+            }
+            .tint(BrandColor.primary)
+        }
+    }
 }
 
 // MARK: - Filter sheet
@@ -405,5 +410,86 @@ struct FilterPills: View {
             .background(isActive ? color : color.opacity(0.12))
             .clipShape(Capsule())
         }
+    }
+}
+
+// MARK: - Trash (same module: avoids target / ordering issues in some Xcode setups)
+
+struct TransactionTrashView: View {
+    @ObservedObject var transactionViewModel: TransactionViewModel
+    @Environment(\.dismiss) private var dismiss
+
+    @State private var trashItems: [Transaction] = []
+    @State private var isLoading = true
+    @State private var errorText: String?
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                CanvasBackground()
+                if isLoading {
+                    ProgressView()
+                } else if trashItems.isEmpty {
+                    EmptyStateCard(
+                        icon: "trash",
+                        title: "trash_empty_title",
+                        message: "trash_empty_message"
+                    )
+                    .opacity(0.95)
+                } else {
+                    List {
+                        ForEach(trashItems) { txn in
+                            TransactionRowView(
+                                transaction: txn,
+                                bankBalanceAfter: nil,
+                                displayCurrency: AuthService.shared.currentUser?.preferredCurrency
+                            )
+                            .listRowBackground(Color.clear)
+                            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                Button {
+                                    Task { await restore(txn) }
+                                } label: {
+                                    Label("restore", systemImage: "arrow.uturn.backward")
+                                }
+                                .tint(BrandColor.primary)
+                            }
+                        }
+                    }
+                    .listStyle(.plain)
+                    .scrollContentBackground(.hidden)
+                }
+            }
+            .navigationTitle(L("transaction_trash_title"))
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("done") { dismiss() }
+                }
+                ToolbarItem(placement: .primaryAction) {
+                    Button {
+                        Task { await reload() }
+                    } label: {
+                        Image(systemName: "arrow.clockwise")
+                    }
+                }
+            }
+        }
+        .task { await reload() }
+    }
+
+    private func reload() async {
+        isLoading = true
+        errorText = nil
+        defer { isLoading = false }
+        do {
+            trashItems = try await transactionViewModel.loadTrashTransactions()
+        } catch {
+            errorText = error.localizedDescription
+            trashItems = []
+        }
+    }
+
+    private func restore(_ txn: Transaction) async {
+        await transactionViewModel.restoreTransaction(txn.id)
+        trashItems.removeAll { $0.id == txn.id }
     }
 }

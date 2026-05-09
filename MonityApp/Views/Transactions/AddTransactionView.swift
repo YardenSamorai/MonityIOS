@@ -68,6 +68,7 @@ struct AddTransactionView: View {
                     .padding(.top, 8)
                     .padding(.bottom, 32)
                 }
+                .scrollDismissesKeyboard(.interactively)
             }
             .navigationTitle(isEditing ? "edit_transaction" : "add_transaction")
             .navigationBarTitleDisplayMode(.inline)

@@ -661,6 +661,7 @@ struct OnboardingAddRecurringSheet: View {
                 .padding(20)
                 .padding(.bottom, 20)
             }
+            .scrollDismissesKeyboard(.interactively)
             .background(Color(.systemGroupedBackground))
             .navigationTitle(L("onb_add_recurring"))
             .navigationBarTitleDisplayMode(.inline)

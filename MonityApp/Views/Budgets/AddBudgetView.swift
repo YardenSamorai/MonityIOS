@@ -91,6 +91,7 @@ struct AddBudgetView: View {
                     .padding(.top, 8)
                     .padding(.bottom, 32)
                 }
+                .scrollDismissesKeyboard(.interactively)
             }
             .navigationTitle("add_budget")
             .navigationBarTitleDisplayMode(.inline)

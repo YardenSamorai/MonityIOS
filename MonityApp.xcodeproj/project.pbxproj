@@ -39,7 +39,7 @@
 		MX00000031SGMBLD31 /* SavingsGoalModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = MX00000032SGMREF32 /* SavingsGoalModels.swift */; };
 		MX00000033GVMBLD33 /* GoalsAndRulesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = MX00000034GVMREF34 /* GoalsAndRulesViewModel.swift */; };
 		MX00000035EXTBLD35 /* ExtendedSettingsViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = MX00000036EXTREF36 /* ExtendedSettingsViews.swift */; };
-		MX00000037TRHBLD37 /* TransactionTrashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = MX00000038TRHREF38 /* TransactionTrashView.swift */; };
+		MX0000004ALIBLD4A /* LogExpenseIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = MX0000004BLIREF4B /* LogExpenseIntent.swift */; };
 		B5BE099158C829E4CC239DE3 /* CategoryPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06EE3B655CA53E19209967F3 /* CategoryPickerView.swift */; };
 		BB00000000000001THEME001 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000000000002THEME002 /* Theme.swift */; };
 		BB00000000000003DSGN001 /* DesignComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000000000004DSGN002 /* DesignComponents.swift */; };
@@ -118,7 +118,7 @@
 		MX00000032SGMREF32 /* SavingsGoalModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavingsGoalModels.swift; sourceTree = "<group>"; };
 		MX00000034GVMREF34 /* GoalsAndRulesViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalsAndRulesViewModel.swift; sourceTree = "<group>"; };
 		MX00000036EXTREF36 /* ExtendedSettingsViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtendedSettingsViews.swift; sourceTree = "<group>"; };
-		MX00000038TRHREF38 /* TransactionTrashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionTrashView.swift; sourceTree = "<group>"; };
+		MX0000004BLIREF4B /* LogExpenseIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogExpenseIntent.swift; sourceTree = "<group>"; };
 		31B1E37494210A6CB441A7F7 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
 		34F295D8A999DA7F8AAF32E7 /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		3897E03B93080A048B71107E /* TransactionListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionListView.swift; sourceTree = "<group>"; };
@@ -209,7 +209,6 @@
 				FEDA035CE48B50C1FB242C31 /* AddTransactionView.swift */,
 				06EE3B655CA53E19209967F3 /* CategoryPickerView.swift */,
 				3897E03B93080A048B71107E /* TransactionListView.swift */,
-				MX00000038TRHREF38 /* TransactionTrashView.swift */,
 			);
 			path = Transactions;
 			sourceTree = "<group>";
@@ -314,6 +313,7 @@
 				21AC28F5556641C9341DAF37 /* ViewModels */,
 				D701AEAB1385139377008053 /* Views */,
 				18007383E4BEE81B7F6810E1 /* Services */,
+				MX0000004CINGRP4C /* Intents */,
 				173EAB7A46CAC0D586962C87 /* Utilities */,
 				F7D4F3320B527E32A6B75A03 /* Resources */,
 				FF00000000000002ASST0002 /* Assets.xcassets */,
@@ -322,6 +322,14 @@
 				7A2A2E5438E63FDE37BC583B /* Info.plist */,
 			);
 			path = MonityApp;
+			sourceTree = "<group>";
+		};
+		MX0000004CINGRP4C /* Intents */ = {
+			isa = PBXGroup;
+			children = (
+				MX0000004BLIREF4B /* LogExpenseIntent.swift */,
+			);
+			path = Intents;
 			sourceTree = "<group>";
 		};
 		A218F1BF7BCAEAF242954177 /* Products */ = {
@@ -556,7 +564,7 @@
 				MX00000031SGMBLD31 /* SavingsGoalModels.swift in Sources */,
 				MX00000033GVMBLD33 /* GoalsAndRulesViewModel.swift in Sources */,
 				MX00000035EXTBLD35 /* ExtendedSettingsViews.swift in Sources */,
-				MX00000037TRHBLD37 /* TransactionTrashView.swift in Sources */,
+				MX0000004ALIBLD4A /* LogExpenseIntent.swift in Sources */,
 				00E97171EA4A6C54EA4123EE /* KeychainHelper.swift in Sources */,
 				FF30798542BAD547B4D000AD /* Constants.swift in Sources */,
 				AA00000000000001LANG0001 /* LanguageManager.swift in Sources */,

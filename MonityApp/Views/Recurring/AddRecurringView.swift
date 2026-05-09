@@ -68,6 +68,7 @@ struct AddRecurringView: View {
                     .padding(.top, 8)
                     .padding(.bottom, 32)
                 }
+                .scrollDismissesKeyboard(.interactively)
             }
             .navigationTitle(isEditing ? "edit_recurring" : "add_recurring")
             .navigationBarTitleDisplayMode(.inline)
