@@ -35,6 +35,60 @@ struct Transaction: Codable, Identifiable {
         case category = "Category"
         case user = "User"
     }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(String.self, forKey: .id)
+        amount = try DecodingHelpers.decodeFlexibleDouble(c, forKey: .amount)
+        currency = try c.decodeIfPresent(String.self, forKey: .currency) ?? "ILS"
+        type = try c.decode(TransactionType.self, forKey: .type)
+        note = try c.decodeIfPresent(String.self, forKey: .note) ?? ""
+        date = try c.decode(String.self, forKey: .date)
+        categoryId = try c.decodeIfPresent(Int.self, forKey: .categoryId)
+        recurringRuleId = try c.decodeIfPresent(String.self, forKey: .recurringRuleId)
+        creditCardId = try c.decodeIfPresent(String.self, forKey: .creditCardId)
+        isBilled = try c.decodeIfPresent(Bool.self, forKey: .isBilled)
+        installmentNumber = try c.decodeIfPresent(Int.self, forKey: .installmentNumber)
+        installmentCount = try c.decodeIfPresent(Int.self, forKey: .installmentCount)
+        installmentGroupId = try c.decodeIfPresent(String.self, forKey: .installmentGroupId)
+        createdAt = try c.decodeIfPresent(String.self, forKey: .createdAt)
+        category = try c.decodeIfPresent(TransactionCategory.self, forKey: .category)
+        user = try c.decodeIfPresent(TransactionUser.self, forKey: .user)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(id, forKey: .id)
+        try c.encode(amount, forKey: .amount)
+        try c.encode(currency, forKey: .currency)
+        try c.encode(type, forKey: .type)
+        try c.encode(note, forKey: .note)
+        try c.encode(date, forKey: .date)
+        try c.encodeIfPresent(categoryId, forKey: .categoryId)
+        try c.encodeIfPresent(recurringRuleId, forKey: .recurringRuleId)
+        try c.encodeIfPresent(creditCardId, forKey: .creditCardId)
+        try c.encodeIfPresent(isBilled, forKey: .isBilled)
+        try c.encodeIfPresent(installmentNumber, forKey: .installmentNumber)
+        try c.encodeIfPresent(installmentCount, forKey: .installmentCount)
+        try c.encodeIfPresent(installmentGroupId, forKey: .installmentGroupId)
+        try c.encodeIfPresent(createdAt, forKey: .createdAt)
+        try c.encodeIfPresent(category, forKey: .category)
+        try c.encodeIfPresent(user, forKey: .user)
+    }
+}
+
+enum DecodingHelpers {
+    static func decodeFlexibleDouble<K: CodingKey>(_ container: KeyedDecodingContainer<K>, forKey key: K) throws -> Double {
+        if let d = try? container.decode(Double.self, forKey: key) { return d }
+        if let s = try? container.decode(String.self, forKey: key), let d = Double(s) { return d }
+        return 0
+    }
+
+    static func decodeFlexibleDoubleIfPresent<K: CodingKey>(_ container: KeyedDecodingContainer<K>, forKey key: K) throws -> Double? {
+        if let d = try? container.decodeIfPresent(Double.self, forKey: key) { return d }
+        if let s = try? container.decodeIfPresent(String.self, forKey: key) { return Double(s) }
+        return nil
+    }
 }
 
 struct TransactionCategory: Codable, Identifiable {
@@ -69,6 +123,18 @@ struct TransactionSummary: Decodable {
     let expense: Double
     let balance: Double
     let byCategory: [CategorySummary]
+
+    private enum CodingKeys: String, CodingKey {
+        case income, expense, balance, byCategory
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        income = try DecodingHelpers.decodeFlexibleDouble(c, forKey: .income)
+        expense = try DecodingHelpers.decodeFlexibleDouble(c, forKey: .expense)
+        balance = try DecodingHelpers.decodeFlexibleDouble(c, forKey: .balance)
+        byCategory = try c.decodeIfPresent([CategorySummary].self, forKey: .byCategory) ?? []
+    }
 }
 
 struct CategorySummary: Identifiable, Decodable {
@@ -86,14 +152,7 @@ struct CategorySummary: Identifiable, Decodable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         categoryId = try container.decodeIfPresent(Int.self, forKey: .categoryId)
         Category = try container.decodeIfPresent(TransactionCategory.self, forKey: .Category)
-
-        if let num = try? container.decode(Double.self, forKey: .total) {
-            totalAmount = num
-        } else if let str = try? container.decode(String.self, forKey: .total) {
-            totalAmount = Double(str) ?? 0
-        } else {
-            totalAmount = 0
-        }
+        totalAmount = try DecodingHelpers.decodeFlexibleDouble(container, forKey: .total)
 
         if let num = try? container.decode(Int.self, forKey: .count) {
             count = num
@@ -104,3 +163,4 @@ struct CategorySummary: Identifiable, Decodable {
         }
     }
 }
+

@@ -83,17 +83,23 @@ final class DashboardViewModel: ObservableObject {
 
         let (from, to) = DateHelper.currentMonthRange()
 
-        async let summaryTask = loadSummary(from: from, to: to)
-        async let transactionsTask = loadRecentTransactions()
-        async let budgetsTask = loadBudgets()
-        async let cardsTask = loadCards()
-        async let recurringTask = loadRecurring()
+        async let summaryResult = loadSummary(from: from, to: to)
+        async let transactionsResult = loadRecentTransactions()
+        async let budgetsResult = loadBudgets()
+        async let cardsResult = loadCards()
+        async let recurringResult = loadRecurring()
 
-        let _ = await (summaryTask, transactionsTask, budgetsTask, cardsTask, recurringTask)
+        let results = await [summaryResult, transactionsResult, budgetsResult, cardsResult, recurringResult]
+        let failures = results.compactMap { $0 }
+        if let firstFailure = failures.first {
+            errorMessage = firstFailure
+        }
 
         isLoading = false
 
-        syncToWidget()
+        if summary != nil {
+            syncToWidget()
+        }
         triggerNotifications()
     }
 
@@ -112,7 +118,7 @@ final class DashboardViewModel: ObservableObject {
         NotificationManager.shared.scheduleCardReminders(cards: creditCards)
     }
 
-    private func loadSummary(from: String, to: String) async {
+    private func loadSummary(from: String, to: String) async -> String? {
         do {
             let s: TransactionSummary = try await APIClient.shared.request(
                 endpoint: "/transactions/summary",
@@ -122,46 +128,54 @@ final class DashboardViewModel: ObservableObject {
                 ]
             )
             summary = s
+            return nil
         } catch {
             print("Summary error: \(error)")
+            return error.localizedDescription
         }
     }
 
-    private func loadRecentTransactions() async {
+    private func loadRecentTransactions() async -> String? {
         do {
             let t: TransactionListResponse = try await APIClient.shared.request(
                 endpoint: "/transactions",
                 queryItems: [URLQueryItem(name: "limit", value: "5")]
             )
             recentTransactions = t.transactions
+            return nil
         } catch {
             print("Transactions error: \(error)")
+            return error.localizedDescription
         }
     }
 
-    private func loadBudgets() async {
+    private func loadBudgets() async -> String? {
         do {
             let b: BudgetStatusResponse = try await APIClient.shared.request(
                 endpoint: "/budgets/status"
             )
             budgetStatuses = b.budgets
+            return nil
         } catch {
             print("Budgets error: \(error)")
+            return error.localizedDescription
         }
     }
 
-    private func loadCards() async {
+    private func loadCards() async -> String? {
         do {
             let c: CreditCardListResponse = try await APIClient.shared.request(
                 endpoint: "/credit-cards"
             )
             creditCards = c.creditCards.filter { $0.isActive }
+            return nil
         } catch {
             print("Cards error: \(error)")
+            return error.localizedDescription
         }
     }
 
-    private func loadRecurring() async {
+    private func loadRecurring() async -> String? {
         do {
             let r: RecurringListResponse = try await APIClient.shared.request(
                 endpoint: "/recurring"
@@ -173,8 +187,10 @@ final class DashboardViewModel: ObservableObject {
             recurringIncome = activeRules
                 .filter { $0.type == .income }
                 .map { DashboardRecurringItem(id: $0.id, rule: $0, isPending: isPendingThisMonth($0)) }
+            return nil
         } catch {
             print("Recurring error: \(error)")
+            return error.localizedDescription
         }
     }
 

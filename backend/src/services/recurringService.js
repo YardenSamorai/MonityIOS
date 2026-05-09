@@ -1,6 +1,7 @@
 const cron = require('node-cron');
-const { RecurringRule, Transaction, CreditCard } = require('../models');
+const { RecurringRule, Transaction, CreditCard, User } = require('../models');
 const { Op } = require('sequelize');
+const sequelize = require('../config/database');
 
 function toLocalDateStr(d) {
   const y = d.getFullYear();
@@ -14,105 +15,53 @@ function parseDate(str) {
   return new Date(y, m - 1, d);
 }
 
-function shouldGenerateToday(rule, today) {
+function getAllMissedDates(rule, today) {
+  const dates = [];
   const start = parseDate(rule.startDate);
-  if (today < start) return false;
-  if (rule.endDate && today > parseDate(rule.endDate)) return false;
+  const end = rule.endDate ? parseDate(rule.endDate) : null;
 
-  const startDay = start.getDate();
-  const startDayOfWeek = start.getDay();
-  const todayDay = today.getDate();
-  const todayDayOfWeek = today.getDay();
-  const todayStr = toLocalDateStr(today);
-
-  if (rule.lastGenerated === todayStr) return false;
-
-  switch (rule.frequency) {
-    case 'daily':
-      return true;
-
-    case 'weekly':
-      return todayDayOfWeek === startDayOfWeek;
-
-    case 'monthly': {
-      const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
-      const targetDay = Math.min(startDay, lastDayOfMonth);
-      return todayDay === targetDay;
-    }
-
-    case 'yearly': {
-      return today.getMonth() === start.getMonth() && todayDay === startDay;
-    }
-
-    default:
-      return false;
+  let cursor;
+  if (rule.lastGenerated) {
+    cursor = parseDate(rule.lastGenerated);
+    cursor.setDate(cursor.getDate() + 1);
+  } else {
+    cursor = new Date(start);
   }
-}
 
-function getMissedDate(rule, today) {
-  const start = parseDate(rule.startDate);
-  if (today < start) return null;
-  if (rule.endDate && today > parseDate(rule.endDate)) return null;
+  if (cursor < start) cursor = new Date(start);
 
-  const todayStr = toLocalDateStr(today);
-  const currentMonth = todayStr.substring(0, 7);
+  let safety = 0;
+  while (cursor <= today && safety < 400) {
+    if (end && cursor > end) break;
 
-  const lastGen = rule.lastGenerated;
-  const lastGenMonth = lastGen ? lastGen.substring(0, 7) : null;
-
-  switch (rule.frequency) {
-    case 'daily': {
-      if (lastGen === todayStr) return null;
-      return todayStr;
-    }
-
-    case 'weekly': {
-      const startDayOfWeek = start.getDay();
-      const todayDayOfWeek = today.getDay();
-      if (todayDayOfWeek === startDayOfWeek && lastGen !== todayStr) return todayStr;
-      if (!lastGen || daysBetween(lastGen, todayStr) >= 7) {
-        let d = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-        d.setDate(d.getDate() - ((todayDayOfWeek - startDayOfWeek + 7) % 7));
-        const missedStr = toLocalDateStr(d);
-        if (missedStr !== lastGen && missedStr >= rule.startDate && missedStr <= todayStr) return missedStr;
+    let isOccurrence = false;
+    switch (rule.frequency) {
+      case 'daily':
+        isOccurrence = true;
+        break;
+      case 'weekly':
+        isOccurrence = cursor.getDay() === start.getDay();
+        break;
+      case 'monthly': {
+        const lastDay = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0).getDate();
+        const targetDay = Math.min(start.getDate(), lastDay);
+        isOccurrence = cursor.getDate() === targetDay;
+        break;
       }
-      return null;
+      case 'yearly':
+        isOccurrence = cursor.getMonth() === start.getMonth() && cursor.getDate() === start.getDate();
+        break;
     }
 
-    case 'monthly': {
-      if (lastGenMonth === currentMonth) return null;
-      const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
-      const targetDay = Math.min(start.getDate(), lastDayOfMonth);
-      if (today.getDate() >= targetDay) {
-        const missedDate = new Date(today.getFullYear(), today.getMonth(), targetDay);
-        const missedStr = toLocalDateStr(missedDate);
-        if (missedStr >= rule.startDate) return missedStr;
-      }
-      return null;
+    if (isOccurrence) {
+      dates.push(toLocalDateStr(cursor));
     }
 
-    case 'yearly': {
-      const currentYear = String(today.getFullYear());
-      const lastGenYear = lastGen ? lastGen.substring(0, 4) : null;
-      if (lastGenYear === currentYear) return null;
-      if (today.getMonth() > start.getMonth() ||
-          (today.getMonth() === start.getMonth() && today.getDate() >= start.getDate())) {
-        const missedDate = new Date(today.getFullYear(), start.getMonth(), start.getDate());
-        const missedStr = toLocalDateStr(missedDate);
-        if (missedStr >= rule.startDate) return missedStr;
-      }
-      return null;
-    }
-
-    default:
-      return null;
+    cursor.setDate(cursor.getDate() + 1);
+    safety++;
   }
-}
 
-function daysBetween(dateStr1, dateStr2) {
-  const d1 = new Date(dateStr1);
-  const d2 = new Date(dateStr2);
-  return Math.floor((d2 - d1) / (1000 * 60 * 60 * 24));
+  return dates;
 }
 
 async function processRecurringRules() {
@@ -134,30 +83,32 @@ async function processRecurringRules() {
 
     let created = 0;
     for (const rule of rules) {
-      let transactionDate = null;
+      const missedDates = getAllMissedDates(rule, today);
 
-      if (shouldGenerateToday(rule, today)) {
-        transactionDate = todayStr;
-      } else {
-        transactionDate = getMissedDate(rule, today);
-      }
+      if (missedDates.length === 0) continue;
 
-      if (transactionDate) {
-        await Transaction.create({
-          amount: rule.amount,
-          currency: rule.currency,
-          type: rule.type,
-          note: rule.note,
-          date: transactionDate,
-          categoryId: rule.categoryId,
-          userId: rule.userId,
-          recurringRuleId: rule.id,
+      try {
+        await sequelize.transaction(async (t) => {
+          for (const dateStr of missedDates) {
+            await Transaction.create({
+              amount: rule.amount,
+              currency: rule.currency,
+              type: rule.type,
+              note: rule.note,
+              date: dateStr,
+              categoryId: rule.categoryId,
+              userId: rule.userId,
+              recurringRuleId: rule.id,
+            }, { transaction: t });
+            created++;
+            console.log(`Recurring: created ${rule.type} "${rule.note}" ${rule.amount} for ${dateStr}`);
+          }
+
+          rule.lastGenerated = missedDates[missedDates.length - 1];
+          await rule.save({ transaction: t });
         });
-
-        rule.lastGenerated = todayStr;
-        await rule.save();
-        created++;
-        console.log(`Recurring: created ${rule.type} "${rule.note}" ₪${rule.amount} for ${transactionDate}`);
+      } catch (err) {
+        console.error(`Failed to process rule ${rule.id}:`, err);
       }
     }
 
@@ -195,41 +146,63 @@ async function processCreditCardBilling() {
 
       if (lastBilledMonth === currentMonth) continue;
 
-      const unbilledExpenses = await Transaction.sum('amount', {
-        where: { creditCardId: card.id, isBilled: false, type: 'expense' },
-      }) || 0;
-      const unbilledCredits = await Transaction.sum('amount', {
-        where: { creditCardId: card.id, isBilled: false, type: 'income' },
-      }) || 0;
-      const totalCharge = parseFloat(unbilledExpenses) - parseFloat(unbilledCredits);
+      try {
+        await sequelize.transaction(async (t) => {
+          const unbilledTxns = await Transaction.findAll({
+            where: { creditCardId: card.id, isBilled: false },
+            attributes: ['type', 'amount', 'currency'],
+            transaction: t,
+          });
 
-      if (totalCharge <= 0) {
-        card.lastBilledAt = todayStr;
-        await card.save();
-        continue;
+          if (unbilledTxns.length === 0) {
+            card.lastBilledAt = todayStr;
+            await card.save({ transaction: t });
+            return;
+          }
+
+          const currencyTotals = {};
+          for (const txn of unbilledTxns) {
+            const cur = txn.currency || 'ILS';
+            const amt = parseFloat(txn.amount);
+            if (!currencyTotals[cur]) currencyTotals[cur] = 0;
+            currencyTotals[cur] += txn.type === 'expense' ? amt : -amt;
+          }
+
+          const user = await User.findByPk(card.userId, { attributes: ['preferredCurrency'], transaction: t });
+          let billingCurrency = user?.preferredCurrency || 'ILS';
+          const currenciesUsed = Object.keys(currencyTotals);
+          if (currenciesUsed.length === 1) {
+            billingCurrency = currenciesUsed[0];
+          }
+
+          const totalCharge = currencyTotals[billingCurrency] || 0;
+
+          await Transaction.update(
+            { isBilled: true },
+            { where: { creditCardId: card.id, isBilled: false }, transaction: t }
+          );
+
+          if (totalCharge !== 0) {
+            await Transaction.create({
+              amount: Math.abs(totalCharge),
+              currency: billingCurrency,
+              type: totalCharge >= 0 ? 'expense' : 'income',
+              note: `חיוב כרטיס ${card.name} ${card.lastFourDigits ? `(${card.lastFourDigits})` : ''}`.trim(),
+              date: todayStr,
+              userId: card.userId,
+              creditCardId: null,
+              isBilled: true,
+            }, { transaction: t });
+          }
+
+          card.lastBilledAt = todayStr;
+          await card.save({ transaction: t });
+          billed++;
+          console.log(`Credit card "${card.name}" billed ${totalCharge.toFixed(2)} ${billingCurrency} on ${todayStr}`);
+        });
+      } catch (err) {
+        console.error(`Failed to bill card ${card.id}:`, err);
       }
-
-      await Transaction.update(
-        { isBilled: true },
-        { where: { creditCardId: card.id, isBilled: false } }
-      );
-
-      await Transaction.create({
-        amount: totalCharge,
-        currency: 'ILS',
-        type: 'expense',
-        note: `חיוב כרטיס ${card.name} ${card.lastFourDigits ? `(${card.lastFourDigits})` : ''}`.trim(),
-        date: todayStr,
-        userId: card.userId,
-        creditCardId: null,
-        isBilled: true,
-      });
-
-      card.lastBilledAt = todayStr;
-      await card.save();
-      billed++;
-
-      console.log(`Credit card "${card.name}" billed ₪${totalCharge.toFixed(2)} on ${todayStr}`);
     }
 
     if (billed > 0) {

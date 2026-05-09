@@ -77,11 +77,12 @@ final class CreditCardViewModel: ObservableObject {
     }
 
     func moveCard(from source: IndexSet, to destination: Int) {
+        let snapshot = cards
         cards.move(fromOffsets: source, toOffset: destination)
-        Task { await saveCardOrder() }
+        Task { await saveCardOrder(rollbackOnFailure: snapshot) }
     }
 
-    func saveCardOrder() async {
+    func saveCardOrder(rollbackOnFailure snapshot: [CreditCard]? = nil) async {
         let orderedIds = cards.map { $0.id }
         do {
             let _: [String: Bool] = try await APIClient.shared.request(
@@ -91,6 +92,10 @@ final class CreditCardViewModel: ObservableObject {
             )
         } catch {
             print("Failed to save card order: \(error)")
+            if let snapshot {
+                cards = snapshot
+            }
+            errorMessage = error.localizedDescription
         }
     }
 

@@ -32,8 +32,14 @@ final class AuthService: ObservableObject {
             )
             currentUser = response.user
             isAuthenticated = true
+        } catch let apiError as APIError {
+            if apiError.isUnauthorized {
+                logout()
+            } else {
+                isAuthenticated = true
+            }
         } catch {
-            logout()
+            isAuthenticated = true
         }
         isLoading = false
     }
@@ -47,7 +53,8 @@ final class AuthService: ObservableObject {
         )
         keychain.save(response.token, for: Constants.keychainTokenKey)
         keychain.save(email, for: "monity_biometric_email")
-        keychain.save(password, for: "monity_biometric_password")
+        keychain.save(response.token, for: "monity_biometric_token")
+        keychain.delete(for: "monity_biometric_password")
         UserDefaults.standard.set(response.user.name, forKey: "last_login_name")
         currentUser = response.user
         isAuthenticated = true
@@ -67,8 +74,35 @@ final class AuthService: ObservableObject {
             body: body
         )
         keychain.save(response.token, for: Constants.keychainTokenKey)
+        keychain.save(email, for: "monity_biometric_email")
+        keychain.save(response.token, for: "monity_biometric_token")
+        UserDefaults.standard.set(response.user.name, forKey: "last_login_name")
         currentUser = response.user
         isAuthenticated = true
+    }
+
+    func loginWithBiometricToken() async throws {
+        guard let savedToken = keychain.read(for: "monity_biometric_token"), !savedToken.isEmpty else {
+            throw APIError.serverError(401, L("biometric_no_credentials"))
+        }
+        keychain.save(savedToken, for: Constants.keychainTokenKey)
+
+        do {
+            let response: UserResponse = try await APIClient.shared.request(
+                endpoint: "/auth/me",
+                method: "GET"
+            )
+            currentUser = response.user
+            isAuthenticated = true
+        } catch let apiError as APIError {
+            if apiError.isUnauthorized {
+                keychain.delete(for: Constants.keychainTokenKey)
+                keychain.delete(for: "monity_biometric_token")
+                keychain.delete(for: "monity_biometric_password")
+                throw apiError
+            }
+            throw apiError
+        }
     }
 
     func updateProfile(name: String? = nil, currency: String? = nil, locale: String? = nil) async throws {
@@ -97,6 +131,9 @@ final class AuthService: ObservableObject {
 
     func logout() {
         keychain.delete(for: Constants.keychainTokenKey)
+        keychain.delete(for: "monity_biometric_token")
+        keychain.delete(for: "monity_biometric_password")
+        keychain.delete(for: "monity_biometric_email")
         currentUser = nil
         isAuthenticated = false
     }

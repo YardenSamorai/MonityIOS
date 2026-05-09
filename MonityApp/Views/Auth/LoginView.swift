@@ -461,16 +461,13 @@ struct LoginView: View {
             )
             guard success else { return }
 
-            guard let email = KeychainHelper.shared.read(for: "monity_biometric_email"),
-                  let password = KeychainHelper.shared.read(for: "monity_biometric_password")
-            else {
-                viewModel.errorMessage = L("biometric_no_credentials")
-                return
+            do {
+                try await AuthService.shared.loginWithBiometricToken()
+            } catch let apiError as APIError where apiError.isUnauthorized {
+                viewModel.errorMessage = L("biometric_session_expired")
+            } catch {
+                viewModel.errorMessage = error.localizedDescription
             }
-
-            viewModel.email = email
-            viewModel.password = password
-            await viewModel.login()
         } catch {
             if (error as NSError).code == LAError.userCancel.rawValue {
                 return
@@ -485,6 +482,7 @@ struct LoginView: View {
 struct ForgotPasswordView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var email = ""
+    @State private var currentPassword = ""
     @State private var newPassword = ""
     @State private var confirmPassword = ""
     @State private var showNewPassword = false
@@ -507,10 +505,10 @@ struct ForgotPasswordView: View {
                             .foregroundStyle(accentTeal)
                     }
 
-                    Text("reset_password")
+                    Text("change_password")
                         .font(.title3.weight(.bold))
 
-                    Text("reset_password_subtitle")
+                    Text("change_password_subtitle")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
@@ -520,6 +518,8 @@ struct ForgotPasswordView: View {
 
                 VStack(spacing: 14) {
                     resetField(icon: "envelope", placeholder: "email", text: $email, keyboard: .emailAddress)
+
+                    resetField(icon: "lock.shield", placeholder: "current_password", text: $currentPassword, isSecure: true)
 
                     HStack(spacing: 12) {
                         Image(systemName: "lock")
@@ -573,22 +573,28 @@ struct ForgotPasswordView: View {
                         if isLoading {
                             ProgressView().tint(.white)
                         } else {
-                            Text("reset_password_button")
+                            Text("change_password_button")
                                 .font(.subheadline.weight(.bold))
                         }
                     }
                     .frame(maxWidth: .infinity)
                     .frame(height: 52)
                     .background(
-                        (email.isEmpty || newPassword.isEmpty || confirmPassword.isEmpty)
+                        (email.isEmpty || currentPassword.isEmpty || newPassword.isEmpty || confirmPassword.isEmpty)
                             ? AnyShapeStyle(Color.gray.opacity(0.15))
                             : AnyShapeStyle(LinearGradient(colors: [Color(hex: "0F2027"), Color(hex: "2C5364")], startPoint: .leading, endPoint: .trailing))
                     )
                     .foregroundStyle(.white)
                     .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                 }
-                .disabled(isLoading || email.isEmpty || newPassword.isEmpty || confirmPassword.isEmpty)
+                .disabled(isLoading || email.isEmpty || currentPassword.isEmpty || newPassword.isEmpty || confirmPassword.isEmpty)
                 .padding(.horizontal, 24)
+
+                Text("forgot_password_help")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 24)
 
                 Spacer()
             }
@@ -648,6 +654,7 @@ struct ForgotPasswordView: View {
             struct ResetResponse: Codable { let message: String }
             let body: [String: Any] = [
                 "email": email.lowercased(),
+                "currentPassword": currentPassword,
                 "newPassword": newPassword,
             ]
             let _: ResetResponse = try await APIClient.shared.request(

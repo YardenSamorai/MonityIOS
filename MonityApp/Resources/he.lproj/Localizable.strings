@@ -11,6 +11,12 @@
 "forgot_password" = "שכחתי סיסמה";
 "reset_password" = "איפוס סיסמה";
 "reset_password_subtitle" = "הזן את האימייל שלך וסיסמה חדשה";
+"change_password" = "שינוי סיסמה";
+"change_password_subtitle" = "הזן את הסיסמה הנוכחית ובחר סיסמה חדשה";
+"change_password_button" = "שנה סיסמה";
+"current_password" = "סיסמה נוכחית";
+"forgot_password_help" = "אם שכחת את הסיסמה, אנא פנה לתמיכה.";
+"biometric_session_expired" = "פג תוקף ההתחברות. נא להיכנס שוב עם סיסמה.";
 "new_password" = "סיסמה חדשה";
 "confirm_password" = "אימות סיסמה";
 "reset_password_button" = "אפס סיסמה";

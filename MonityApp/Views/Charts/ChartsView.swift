@@ -4,6 +4,7 @@ import Charts
 struct ChartsView: View {
     @StateObject private var viewModel = ChartsViewModel()
     @State private var appeared = false
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         NavigationStack {
@@ -45,6 +46,11 @@ struct ChartsView: View {
             .task {
                 await viewModel.loadCharts()
                 appeared = true
+            }
+            .onChange(of: scenePhase) { _, newPhase in
+                if newPhase == .active {
+                    Task { await viewModel.loadCharts() }
+                }
             }
         }
     }

@@ -116,7 +116,13 @@ router.post('/login', async (req, res) => {
 
 router.post('/reset-password', async (req, res) => {
   try {
-    const { email, newPassword } = req.body;
+    if (process.env.ALLOW_PASSWORD_RESET !== 'true') {
+      return res.status(503).json({
+        error: 'Password reset is currently disabled. Please contact support to reset your password.',
+      });
+    }
+
+    const { email, newPassword, currentPassword } = req.body;
 
     if (!email || !newPassword) {
       return res.status(400).json({ error: 'Email and new password are required' });
@@ -128,6 +134,14 @@ router.post('/reset-password', async (req, res) => {
     const user = await User.findOne({ where: { email: email.toLowerCase() } });
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
+    }
+
+    if (!currentPassword) {
+      return res.status(400).json({ error: 'Current password is required' });
+    }
+    const valid = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!valid) {
+      return res.status(401).json({ error: 'Invalid current password' });
     }
 
     user.passwordHash = await bcrypt.hash(newPassword, 12);

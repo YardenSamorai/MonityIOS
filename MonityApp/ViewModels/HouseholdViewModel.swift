@@ -13,6 +13,7 @@ final class HouseholdViewModel: ObservableObject {
     @Published var isInviting = false
     @Published var errorMessage: String?
     @Published var successMessage: String?
+    @Published var loadFailed = false
 
     var hasHousehold: Bool { household != nil }
     var hasInvitations: Bool { !invitations.isEmpty }
@@ -51,7 +52,17 @@ final class HouseholdViewModel: ObservableObject {
                 endpoint: "/household"
             )
             household = response.household
+            loadFailed = false
+        } catch let apiError as APIError {
+            if apiError.statusCode == 404 {
+                household = nil
+                loadFailed = false
+            } else {
+                loadFailed = true
+                print("Load household error: \(apiError)")
+            }
         } catch {
+            loadFailed = true
             print("Load household error: \(error)")
         }
     }

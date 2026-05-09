@@ -24,12 +24,21 @@ router.post('/', async (req, res) => {
   try {
     const { amount, currency, type, frequency, startDate, endDate, categoryId, note } = req.body;
 
-    if (!amount || !type || !frequency || !startDate) {
-      return res.status(400).json({ error: 'amount, type, frequency, and startDate are required' });
+    const numericAmount = Number(amount);
+    if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
+      return res.status(400).json({ error: 'Amount must be a positive number' });
+    }
+    if (!type || !frequency || !startDate) {
+      return res.status(400).json({ error: 'type, frequency, and startDate are required' });
+    }
+
+    if (categoryId !== undefined && categoryId !== null) {
+      const cat = await Category.findOne({ where: { id: categoryId, userId: req.userId } });
+      if (!cat) return res.status(403).json({ error: 'Invalid category' });
     }
 
     const rule = await RecurringRule.create({
-      amount,
+      amount: numericAmount,
       currency: currency || 'ILS',
       type,
       frequency,
@@ -59,6 +68,17 @@ router.put('/:id', async (req, res) => {
       where: { id: req.params.id, userId: req.userId },
     });
     if (!rule) return res.status(404).json({ error: 'Recurring rule not found' });
+
+    if (req.body.categoryId !== undefined && req.body.categoryId !== null) {
+      const cat = await Category.findOne({ where: { id: req.body.categoryId, userId: req.userId } });
+      if (!cat) return res.status(403).json({ error: 'Invalid category' });
+    }
+    if (req.body.amount !== undefined) {
+      const n = Number(req.body.amount);
+      if (!Number.isFinite(n) || n <= 0) {
+        return res.status(400).json({ error: 'Amount must be a positive number' });
+      }
+    }
 
     const fields = ['amount', 'currency', 'type', 'frequency', 'startDate', 'endDate', 'categoryId', 'note', 'isActive'];
     fields.forEach((f) => {

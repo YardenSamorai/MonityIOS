@@ -23,6 +23,7 @@ final class SettingsViewModel: ObservableObject {
     func updateCurrency(_ code: String) async {
         do {
             try await AuthService.shared.updateProfile(currency: code)
+            CurrencyHelper.clearCache()
         } catch {
             errorMessage = error.localizedDescription
         }

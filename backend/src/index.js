@@ -17,8 +17,19 @@ const { startRecurringJob } = require('./services/recurringService');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 
-app.use(cors());
+const allowedOrigins = (process.env.CORS_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (!IS_PRODUCTION) return callback(null, true);
+    if (allowedOrigins.length === 0) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+}));
 app.use(express.json());
 
 app.get('/api/health', (_req, res) => {
@@ -44,10 +55,20 @@ async function start() {
   try {
     await sequelize.authenticate();
     console.log('Database connected');
-    await sequelize.query('PRAGMA foreign_keys = OFF;');
-    await sequelize.sync({ alter: true });
-    await sequelize.query('PRAGMA foreign_keys = ON;');
-    console.log('Models synchronized');
+
+    const skipAlter = process.env.DB_NO_ALTER === 'true';
+    if (skipAlter) {
+      await sequelize.sync();
+      console.log('Models synchronized (safe mode, no alter)');
+    } else {
+      if (IS_PRODUCTION) {
+        console.warn('WARNING: running sequelize.sync({ alter: true }) in production. Set DB_NO_ALTER=true once schema is stable.');
+      }
+      await sequelize.query('PRAGMA foreign_keys = OFF;');
+      await sequelize.sync({ alter: true });
+      await sequelize.query('PRAGMA foreign_keys = ON;');
+      console.log('Models synchronized (alter mode)');
+    }
 
     startRecurringJob();
 

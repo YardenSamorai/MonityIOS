@@ -22,11 +22,23 @@ router.get('/csv', async (req, res) => {
       order: [['date', 'DESC']],
     });
 
+    function escapeCsv(value) {
+      const s = String(value ?? '');
+      const safe = /^[=+\-@\t\r]/.test(s) ? `'${s}` : s;
+      return `"${safe.replace(/"/g, '""')}"`;
+    }
+
     const header = 'Date,Type,Category,Amount,Currency,Note\n';
     const rows = transactions.map((t) => {
       const cat = t.Category ? t.Category.name : 'Uncategorized';
-      const note = (t.note || '').replace(/"/g, '""');
-      return `${t.date},${t.type},"${cat}",${t.amount},${t.currency},"${note}"`;
+      return [
+        escapeCsv(t.date),
+        escapeCsv(t.type),
+        escapeCsv(cat),
+        escapeCsv(t.amount),
+        escapeCsv(t.currency),
+        escapeCsv(t.note || ''),
+      ].join(',');
     });
 
     const csv = header + rows.join('\n');

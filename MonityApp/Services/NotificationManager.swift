@@ -21,8 +21,10 @@ final class NotificationManager: ObservableObject {
 
     var dailyReminderHour: Int {
         get {
-            let val = UserDefaults.standard.integer(forKey: "daily_reminder_hour")
-            return val == 0 ? 21 : val
+            if UserDefaults.standard.object(forKey: "daily_reminder_hour") == nil {
+                return 21
+            }
+            return UserDefaults.standard.integer(forKey: "daily_reminder_hour")
         }
         set {
             UserDefaults.standard.set(newValue, forKey: "daily_reminder_hour")
@@ -128,27 +130,57 @@ final class NotificationManager: ObservableObject {
         guard cardReminderEnabled else { return }
         cancelCardReminders()
 
+        let calendar = Calendar.current
+        let now = Date()
+
         for card in cards {
-            let billingDay = card.billingDay
-            let reminderDay = billingDay <= 2 ? billingDay + 28 : billingDay - 2
+            var billing = nextBillingDate(billingDay: card.billingDay, from: now, calendar: calendar)
+            for offset in 0..<3 {
+                guard let billingDate = billing,
+                      let reminderDate = calendar.date(byAdding: .day, value: -2, to: billingDate)
+                else { continue }
 
-            let content = UNMutableNotificationContent()
-            content.title = L("notif_card_title")
-            content.body = String(format: L("notif_card_body"), card.name)
-            content.sound = .default
+                let content = UNMutableNotificationContent()
+                content.title = L("notif_card_title")
+                content.body = String(format: L("notif_card_body"), card.name)
+                content.sound = .default
 
-            var components = DateComponents()
-            components.day = reminderDay
-            components.hour = 10
+                var components = calendar.dateComponents([.year, .month, .day], from: reminderDate)
+                components.hour = 10
+                components.minute = 0
 
-            let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: true)
-            let request = UNNotificationRequest(
-                identifier: "card_\(card.id)",
-                content: content,
-                trigger: trigger
-            )
-            UNUserNotificationCenter.current().add(request)
+                let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
+                let request = UNNotificationRequest(
+                    identifier: "card_\(card.id)_m\(offset)",
+                    content: content,
+                    trigger: trigger
+                )
+                UNUserNotificationCenter.current().add(request)
+
+                billing = calendar.date(byAdding: .month, value: 1, to: billingDate)
+            }
         }
+    }
+
+    private func nextBillingDate(billingDay: Int, from date: Date, calendar: Calendar) -> Date? {
+        let components = calendar.dateComponents([.year, .month, .day], from: date)
+        guard let year = components.year, let month = components.month, let today = components.day else { return nil }
+
+        var targetMonth = month
+        var targetYear = year
+        if today >= billingDay {
+            targetMonth += 1
+            if targetMonth > 12 {
+                targetMonth = 1
+                targetYear += 1
+            }
+        }
+
+        let range = calendar.range(of: .day, in: .month, for: calendar.date(from: DateComponents(year: targetYear, month: targetMonth, day: 1)) ?? Date()) ?? 28..<29
+        let lastDay = range.upperBound - 1
+        let day = min(billingDay, lastDay)
+
+        return calendar.date(from: DateComponents(year: targetYear, month: targetMonth, day: day))
     }
 
     func cancelCardReminders() {

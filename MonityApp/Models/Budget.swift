@@ -58,6 +58,34 @@ struct BudgetStatus: Codable, Identifiable {
     let percentage: Double
     let period: String
     let status: String
+
+    enum CodingKeys: String, CodingKey {
+        case id, category, limitAmount, spent, remaining, percentage, period, status
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(String.self, forKey: .id)
+        category = try c.decodeIfPresent(TransactionCategory.self, forKey: .category)
+        limitAmount = try DecodingHelpers.decodeFlexibleDouble(c, forKey: .limitAmount)
+        spent = try DecodingHelpers.decodeFlexibleDouble(c, forKey: .spent)
+        remaining = try DecodingHelpers.decodeFlexibleDouble(c, forKey: .remaining)
+        percentage = try DecodingHelpers.decodeFlexibleDouble(c, forKey: .percentage)
+        period = try c.decode(String.self, forKey: .period)
+        status = try c.decode(String.self, forKey: .status)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(id, forKey: .id)
+        try c.encodeIfPresent(category, forKey: .category)
+        try c.encode(limitAmount, forKey: .limitAmount)
+        try c.encode(spent, forKey: .spent)
+        try c.encode(remaining, forKey: .remaining)
+        try c.encode(percentage, forKey: .percentage)
+        try c.encode(period, forKey: .period)
+        try c.encode(status, forKey: .status)
+    }
 }
 
 struct BudgetListResponse: Codable {

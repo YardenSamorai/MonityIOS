@@ -73,6 +73,18 @@ struct LockScreenView: View {
                 .padding(.horizontal, 44)
                 .opacity(appeared ? 1 : 0)
 
+                Button {
+                    biometricManager.isEnabled = false
+                    biometricManager.isLocked = false
+                    AuthService.shared.logout()
+                } label: {
+                    Text("logout")
+                        .font(.footnote.weight(.medium))
+                        .foregroundStyle(.white.opacity(0.55))
+                }
+                .padding(.top, 4)
+                .opacity(appeared ? 1 : 0)
+
                 Spacer().frame(height: 50)
             }
         }

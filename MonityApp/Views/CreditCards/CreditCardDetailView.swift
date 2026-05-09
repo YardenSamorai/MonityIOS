@@ -99,7 +99,8 @@ struct CreditCardDetailView: View {
             }
         } message: {
             if let balance = viewModel.selectedCard?.currentBalance {
-                Text("bill_confirm_message \(CurrencyHelper.format(balance))")
+                let formatted = CurrencyHelper.format(balance, currency: AuthService.shared.currentUser?.preferredCurrency ?? "ILS")
+                Text(String(format: NSLocalizedString("bill_confirm_message %@", comment: ""), formatted))
             }
         }
         .refreshable {

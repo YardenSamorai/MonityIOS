@@ -62,6 +62,7 @@ final class ChartsViewModel: ObservableObject {
                 )
 
                 let formatter = DateFormatter()
+                formatter.locale = LanguageManager.shared.locale
                 formatter.dateFormat = "MMM"
                 let label = formatter.string(from: monthDate)
 

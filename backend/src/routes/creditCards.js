@@ -1,11 +1,18 @@
 const express = require('express');
 const { Op } = require('sequelize');
 const sequelize = require('../config/database');
-const { CreditCard, Transaction, Category } = require('../models');
+const { CreditCard, Transaction, Category, User } = require('../models');
 const { authMiddleware } = require('../middleware/auth');
 
 const router = express.Router();
 router.use(authMiddleware);
+
+function toLocalDateStr(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
 
 router.get('/', async (req, res) => {
   try {
@@ -188,6 +195,13 @@ router.put('/:id', async (req, res) => {
     });
     if (!card) return res.status(404).json({ error: 'Credit card not found' });
 
+    if (req.body.billingDay !== undefined) {
+      const day = parseInt(req.body.billingDay, 10);
+      if (!Number.isFinite(day) || day < 1 || day > 28) {
+        return res.status(400).json({ error: 'billingDay must be between 1 and 28' });
+      }
+    }
+
     const fields = ['name', 'lastFourDigits', 'billingDay', 'creditLimit', 'color', 'isActive'];
     fields.forEach((f) => {
       if (req.body[f] !== undefined) card[f] = req.body[f];
@@ -221,41 +235,64 @@ router.post('/:id/bill', async (req, res) => {
     });
     if (!card) return res.status(404).json({ error: 'Credit card not found' });
 
-    const unbilledExpenses = await Transaction.sum('amount', {
-      where: { creditCardId: card.id, isBilled: false, type: 'expense' },
-    }) || 0;
-    const unbilledCredits = await Transaction.sum('amount', {
-      where: { creditCardId: card.id, isBilled: false, type: 'income' },
-    }) || 0;
-    const totalCharge = parseFloat(unbilledExpenses) - parseFloat(unbilledCredits);
+    const unbilledTxns = await Transaction.findAll({
+      where: { creditCardId: card.id, isBilled: false },
+      attributes: ['type', 'amount', 'currency'],
+    });
 
-    if (totalCharge <= 0) {
+    if (unbilledTxns.length === 0) {
       return res.json({ message: 'No charges to bill', charged: 0 });
     }
 
-    await Transaction.update(
-      { isBilled: true },
-      { where: { creditCardId: card.id, isBilled: false } }
-    );
+    const currencyTotals = {};
+    for (const t of unbilledTxns) {
+      const cur = t.currency || 'ILS';
+      const amt = parseFloat(t.amount);
+      if (!currencyTotals[cur]) currencyTotals[cur] = 0;
+      currencyTotals[cur] += t.type === 'expense' ? amt : -amt;
+    }
 
-    const todayStr = new Date().toISOString().split('T')[0];
-    const chargeTransaction = await Transaction.create({
-      amount: totalCharge,
-      currency: 'ILS',
-      type: 'expense',
-      note: `חיוב כרטיס ${card.name} ${card.lastFourDigits ? `(${card.lastFourDigits})` : ''}`.trim(),
-      date: todayStr,
-      userId: req.userId,
-      creditCardId: null,
-      isBilled: true,
+    const user = await User.findByPk(req.userId, { attributes: ['preferredCurrency'] });
+    let billingCurrency = user?.preferredCurrency || 'ILS';
+    const currenciesUsed = Object.keys(currencyTotals);
+    if (currenciesUsed.length === 1) {
+      billingCurrency = currenciesUsed[0];
+    }
+
+    const totalCharge = currencyTotals[billingCurrency] || 0;
+    if (totalCharge <= 0 && currenciesUsed.length === 1) {
+      return res.json({ message: 'No charges to bill', charged: 0 });
+    }
+
+    const todayStr = toLocalDateStr(new Date());
+
+    const chargeTransaction = await sequelize.transaction(async (t) => {
+      await Transaction.update(
+        { isBilled: true },
+        { where: { creditCardId: card.id, isBilled: false }, transaction: t }
+      );
+
+      const txn = await Transaction.create({
+        amount: Math.abs(totalCharge),
+        currency: billingCurrency,
+        type: totalCharge >= 0 ? 'expense' : 'income',
+        note: `חיוב כרטיס ${card.name} ${card.lastFourDigits ? `(${card.lastFourDigits})` : ''}`.trim(),
+        date: todayStr,
+        userId: req.userId,
+        creditCardId: null,
+        isBilled: true,
+      }, { transaction: t });
+
+      card.lastBilledAt = todayStr;
+      await card.save({ transaction: t });
+
+      return txn;
     });
-
-    card.lastBilledAt = todayStr;
-    await card.save();
 
     res.json({
       charged: totalCharge,
       transaction: chargeTransaction,
+      currencyBreakdown: currenciesUsed.length > 1 ? currencyTotals : undefined,
     });
   } catch (err) {
     console.error('Bill credit card error:', err);

@@ -7,6 +7,13 @@ const { authMiddleware } = require('../middleware/auth');
 const router = express.Router();
 router.use(authMiddleware);
 
+function toLocalDateStr(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
 function getPeriodRange(period) {
   const now = new Date();
   let from, to;
@@ -24,8 +31,8 @@ function getPeriodRange(period) {
     to = new Date(now.getFullYear(), now.getMonth() + 1, 0);
   }
   return {
-    from: from.toISOString().split('T')[0],
-    to: to.toISOString().split('T')[0],
+    from: toLocalDateStr(from),
+    to: toLocalDateStr(to),
   };
 }
 
@@ -59,6 +66,10 @@ router.get('/status', async (req, res) => {
             categoryId: budget.categoryId,
             type: 'expense',
             date: { [Op.between]: [from, to] },
+            [Op.or]: [
+              { creditCardId: null },
+              { isBilled: true },
+            ],
           },
         }) || 0;
 
@@ -88,9 +99,13 @@ router.get('/status', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const { limitAmount, period, categoryId } = req.body;
-    if (!limitAmount || !categoryId) {
-      return res.status(400).json({ error: 'limitAmount and categoryId are required' });
+    const numericLimit = Number(limitAmount);
+    if (!Number.isFinite(numericLimit) || numericLimit <= 0 || !categoryId) {
+      return res.status(400).json({ error: 'limitAmount (positive number) and categoryId are required' });
     }
+
+    const cat = await Category.findOne({ where: { id: categoryId, userId: req.userId } });
+    if (!cat) return res.status(403).json({ error: 'Invalid category' });
 
     const existing = await Budget.findOne({
       where: { userId: req.userId, categoryId },
@@ -100,7 +115,7 @@ router.post('/', async (req, res) => {
     }
 
     const budget = await Budget.create({
-      limitAmount,
+      limitAmount: numericLimit,
       period: period || 'monthly',
       categoryId,
       userId: req.userId,

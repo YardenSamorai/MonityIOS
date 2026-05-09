@@ -60,8 +60,7 @@ final class BiometricAuthManager: ObservableObject {
 
         var error: NSError?
         guard context.canEvaluatePolicy(.deviceOwnerAuthentication, error: &error) else {
-            isLocked = false
-            return true
+            return false
         }
 
         do {

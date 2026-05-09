@@ -11,11 +11,30 @@ enum APIError: LocalizedError {
         switch self {
         case .invalidURL: return "Invalid URL"
         case .invalidResponse: return "Invalid response"
-        case .serverError(let code, let msg): return "Error \(code): \(msg)"
+        case .serverError(_, let msg): return msg
         case .decodingError(let err): return "Decoding error: \(err.localizedDescription)"
         case .networkError(let err): return err.localizedDescription
         }
     }
+
+    var statusCode: Int? {
+        if case .serverError(let code, _) = self { return code }
+        return nil
+    }
+
+    var isUnauthorized: Bool { statusCode == 401 }
+    var isNetworkOrServerError: Bool {
+        switch self {
+        case .networkError, .invalidResponse: return true
+        case .serverError(let code, _): return code >= 500
+        default: return false
+        }
+    }
+}
+
+struct EmptyResponse: Decodable {
+    init() {}
+    init(from decoder: Decoder) throws {}
 }
 
 final class APIClient {
@@ -64,6 +83,14 @@ final class APIClient {
         guard (200...299).contains(httpResponse.statusCode) else {
             let message = (try? JSONDecoder().decode([String: String].self, from: data))?["error"] ?? "Unknown error"
             throw APIError.serverError(httpResponse.statusCode, message)
+        }
+
+        if data.isEmpty || httpResponse.statusCode == 204 {
+            if T.self == EmptyResponse.self, let empty = EmptyResponse() as? T { return empty }
+            if let empty = "{}".data(using: .utf8),
+               let result = try? JSONDecoder().decode(T.self, from: empty) {
+                return result
+            }
         }
 
         do {

@@ -188,29 +188,46 @@ router.get('/invitations', async (req, res) => {
 
 router.post('/invitations/:id/accept', async (req, res) => {
   try {
-    const invitation = await HouseholdMember.findByPk(req.params.id);
-    if (!invitation || invitation.status !== 'pending') {
-      return res.status(404).json({ error: 'Invitation not found' });
-    }
+    const result = await sequelize.transaction(async (t) => {
+      const invitation = await HouseholdMember.findByPk(req.params.id, { transaction: t });
+      if (!invitation || invitation.status !== 'pending') {
+        return { error: { code: 404, message: 'Invitation not found' } };
+      }
 
-    const user = await User.findByPk(req.userId);
-    if (invitation.userId !== req.userId && invitation.invitedEmail !== user.email) {
-      return res.status(403).json({ error: 'This invitation is not for you' });
-    }
+      const user = await User.findByPk(req.userId, { transaction: t });
+      if (invitation.userId !== req.userId && invitation.invitedEmail !== user.email) {
+        return { error: { code: 403, message: 'This invitation is not for you' } };
+      }
 
-    const existingActive = await HouseholdMember.findOne({
-      where: { userId: req.userId, status: 'active' },
+      const existingActive = await HouseholdMember.findOne({
+        where: { userId: req.userId, status: 'active' },
+        transaction: t,
+      });
+      if (existingActive) {
+        return { error: { code: 400, message: 'You already belong to a household' } };
+      }
+
+      const activeMembers = await HouseholdMember.count({
+        where: { householdId: invitation.householdId, status: 'active' },
+        transaction: t,
+      });
+      if (activeMembers >= 2) {
+        return { error: { code: 400, message: 'Household already has 2 members' } };
+      }
+
+      invitation.userId = req.userId;
+      invitation.status = 'active';
+      invitation.joinedAt = new Date();
+      await invitation.save({ transaction: t });
+
+      return { householdId: invitation.householdId };
     });
-    if (existingActive) {
-      return res.status(400).json({ error: 'You already belong to a household' });
+
+    if (result.error) {
+      return res.status(result.error.code).json({ error: result.error.message });
     }
 
-    invitation.userId = req.userId;
-    invitation.status = 'active';
-    invitation.joinedAt = new Date();
-    await invitation.save();
-
-    const household = await Household.findByPk(invitation.householdId, {
+    const household = await Household.findByPk(result.householdId, {
       include: [{
         model: HouseholdMember,
         include: [{ model: User, attributes: ['id', 'name', 'email'] }],
