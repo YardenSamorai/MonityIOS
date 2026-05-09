@@ -17,6 +17,7 @@ struct Transaction: Codable, Identifiable {
     var recurringRuleId: String?
     var creditCardId: String?
     var isBilled: Bool?
+    var isBillingCharge: Bool?
     var installmentNumber: Int?
     var installmentCount: Int?
     var installmentGroupId: String?
@@ -30,7 +31,7 @@ struct Transaction: Codable, Identifiable {
 
     enum CodingKeys: String, CodingKey {
         case id, amount, currency, type, note, date
-        case categoryId, recurringRuleId, creditCardId, isBilled
+        case categoryId, recurringRuleId, creditCardId, isBilled, isBillingCharge
         case installmentNumber, installmentCount, installmentGroupId, createdAt
         case category = "Category"
         case user = "User"
@@ -48,6 +49,7 @@ struct Transaction: Codable, Identifiable {
         recurringRuleId = try c.decodeIfPresent(String.self, forKey: .recurringRuleId)
         creditCardId = try c.decodeIfPresent(String.self, forKey: .creditCardId)
         isBilled = try c.decodeIfPresent(Bool.self, forKey: .isBilled)
+        isBillingCharge = try c.decodeIfPresent(Bool.self, forKey: .isBillingCharge)
         installmentNumber = try c.decodeIfPresent(Int.self, forKey: .installmentNumber)
         installmentCount = try c.decodeIfPresent(Int.self, forKey: .installmentCount)
         installmentGroupId = try c.decodeIfPresent(String.self, forKey: .installmentGroupId)
@@ -68,6 +70,7 @@ struct Transaction: Codable, Identifiable {
         try c.encodeIfPresent(recurringRuleId, forKey: .recurringRuleId)
         try c.encodeIfPresent(creditCardId, forKey: .creditCardId)
         try c.encodeIfPresent(isBilled, forKey: .isBilled)
+        try c.encodeIfPresent(isBillingCharge, forKey: .isBillingCharge)
         try c.encodeIfPresent(installmentNumber, forKey: .installmentNumber)
         try c.encodeIfPresent(installmentCount, forKey: .installmentCount)
         try c.encodeIfPresent(installmentGroupId, forKey: .installmentGroupId)

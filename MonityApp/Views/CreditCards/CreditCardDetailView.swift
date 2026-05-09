@@ -4,88 +4,69 @@ struct CreditCardDetailView: View {
     let cardId: String
     @StateObject private var viewModel = CreditCardViewModel()
     @State private var showBillAlert = false
+    @Environment(\.layoutDirection) private var layoutDirection
 
     var body: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(spacing: 20) {
-                if let card = viewModel.selectedCard {
-                    CreditCardVisual(
-                        card: card,
-                        displayBalance: isCurrentMonth ? nil : viewModel.historySummary?.netCharge
-                    )
+        ZStack {
+            CanvasBackground()
 
-                    HStack(spacing: 12) {
-                        infoCard(
-                            title: isCurrentMonth ? "next_billing" : "billing_history",
-                            value: isCurrentMonth ? nextBillingDateString(card.billingDay) : viewModel.selectedMonthDisplayName,
-                            icon: "calendar",
-                            gradient: AppTheme.primaryGradient
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 18) {
+                    if let card = viewModel.selectedCard {
+                        CreditCardVisual(
+                            card: card,
+                            displayBalance: isCurrentMonth ? nil : viewModel.historySummary?.netCharge
                         )
-                        infoCard(
-                            title: "current_balance",
-                            value: CurrencyHelper.format(isCurrentMonth ? (card.currentBalance ?? 0) : (viewModel.historySummary?.netCharge ?? 0)),
-                            icon: "sheqelsign.circle",
-                            gradient: AppTheme.expenseGradient
-                        )
-                    }
 
-                    if isCurrentMonth, let lastBilled = card.lastBilledAt {
-                        HStack(spacing: 6) {
-                            Image(systemName: "checkmark.circle.fill")
-                                .font(.caption)
-                                .foregroundStyle(AppTheme.income)
-                            Text("last_billed")
-                                .font(.caption.weight(.medium))
-                                .foregroundStyle(.secondary)
-                            Text(DateHelper.display(lastBilled))
-                                .font(.caption.weight(.semibold))
-                                .foregroundStyle(.primary)
+                        statRow(card: card)
+
+                        if isCurrentMonth, let lastBilled = card.lastBilledAt {
+                            lastBilledStrip(date: lastBilled)
                         }
-                        .frame(maxWidth: .infinity)
-                        .padding(12)
-                        .background(AppTheme.income.opacity(0.06))
-                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                    }
 
-                    if isCurrentMonth && (card.currentBalance ?? 0) > 0 {
-                        Button {
-                            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                            showBillAlert = true
-                        } label: {
-                            HStack(spacing: 8) {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .font(.body.weight(.medium))
-                                Text("bill_now")
-                                    .font(.subheadline.weight(.semibold))
+                        if isCurrentMonth && (card.currentBalance ?? 0) > 0 {
+                            Button {
+                                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                                showBillAlert = true
+                            } label: {
+                                HStack(spacing: 8) {
+                                    Image(systemName: "checkmark.seal.fill")
+                                    Text("bill_now").font(.subheadline.weight(.bold))
+                                }
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 50)
+                                .foregroundStyle(.white)
+                                .background(LinearGradient(
+                                    colors: [BrandColor.expense, BrandColor.expense.opacity(0.8)],
+                                    startPoint: .topLeading, endPoint: .bottomTrailing
+                                ))
+                                .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
+                                .shadow(color: BrandColor.expense.opacity(0.3), radius: 10, y: 4)
                             }
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 14)
-                            .background(AppTheme.expenseGradient)
-                            .foregroundStyle(.white)
-                            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                         }
+
+                        monthNavigator
+
+                        if let summary = viewModel.historySummary {
+                            monthlySummaryCard(summary)
+                        }
+
+                        historyTransactionsList
+                    } else if viewModel.isLoading {
+                        ProgressView()
+                            .frame(maxWidth: .infinity)
+                            .padding(.top, 80)
                     }
-
-                    Divider().padding(.vertical, 4)
-
-                    monthNavigator
-
-                    if let summary = viewModel.historySummary {
-                        monthlySummaryCard(summary)
-                    }
-
-                    historyTransactionsList
-
-                } else if viewModel.isLoading {
-                    ProgressView()
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .padding(.top, 100)
                 }
+                .padding(.horizontal, Spacing.screenHorizontal)
+                .padding(.top, 8)
+                .padding(.bottom, 110)
             }
-            .padding(20)
-            .padding(.bottom, 100)
+            .refreshable {
+                await viewModel.loadCardDetail(cardId)
+                await viewModel.loadCardHistory(cardId)
+            }
         }
-        .background(Color(.systemGroupedBackground))
         .navigationTitle(viewModel.selectedCard?.name ?? "")
         .navigationBarTitleDisplayMode(.inline)
         .alert("bill_confirm_title", isPresented: $showBillAlert) {
@@ -99,13 +80,9 @@ struct CreditCardDetailView: View {
             }
         } message: {
             if let balance = viewModel.selectedCard?.currentBalance {
-                let formatted = CurrencyHelper.format(balance, currency: AuthService.shared.currentUser?.preferredCurrency ?? "ILS")
+                let formatted = CurrencyHelper.format(balance)
                 Text(String(format: NSLocalizedString("bill_confirm_message %@", comment: ""), formatted))
             }
-        }
-        .refreshable {
-            await viewModel.loadCardDetail(cardId)
-            await viewModel.loadCardHistory(cardId)
         }
         .task {
             await viewModel.loadCardDetail(cardId)
@@ -118,111 +95,182 @@ struct CreditCardDetailView: View {
         let cal = Calendar.current
         let y = cal.component(.year, from: now)
         let m = cal.component(.month, from: now)
-        let current = "\(y)-\(String(format: "%02d", m))"
-        return viewModel.selectedMonth == current
+        return viewModel.selectedMonth == "\(y)-\(String(format: "%02d", m))"
+    }
+
+    // MARK: - Stat Row
+
+    private func statRow(card: CreditCard) -> some View {
+        HStack(spacing: 12) {
+            statBlock(
+                icon: "calendar.badge.clock",
+                title: isCurrentMonth ? "next_billing" : "billing_history",
+                value: isCurrentMonth ? nextBillingDateString(card.billingDay) : viewModel.selectedMonthDisplayName,
+                color: BrandColor.primary
+            )
+            statBlock(
+                icon: "creditcard.fill",
+                title: "current_balance",
+                value: CurrencyHelper.format(isCurrentMonth ? (card.currentBalance ?? 0) : (viewModel.historySummary?.netCharge ?? 0)),
+                color: BrandColor.expense
+            )
+        }
+    }
+
+    private func statBlock(icon: String, title: LocalizedStringKey, value: String, color: Color) -> some View {
+        GlassSurface(padding: 14) {
+            VStack(alignment: .leading, spacing: 8) {
+                ZStack {
+                    Circle().fill(color.opacity(0.13))
+                    Image(systemName: icon)
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(color)
+                }
+                .frame(width: 26, height: 26)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                        .textCase(.uppercase)
+                        .tracking(0.4)
+                    Text(value)
+                        .font(AppFont.amountSmall)
+                        .foregroundStyle(.primary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                }
+            }
+        }
+    }
+
+    private func lastBilledStrip(date: String) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: "checkmark.seal.fill")
+                .font(.subheadline)
+                .foregroundStyle(BrandColor.income)
+            Text("last_billed")
+                .font(AppFont.caption)
+                .foregroundStyle(.secondary)
+            Text(DateHelper.display(date))
+                .font(AppFont.label)
+                .foregroundStyle(.primary)
+            Spacer()
+        }
+        .padding(12)
+        .background(BrandColor.income.opacity(0.08))
+        .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: Radius.md, style: .continuous)
+                .strokeBorder(BrandColor.income.opacity(0.18), lineWidth: 0.5)
+        )
     }
 
     // MARK: - Month Navigator
 
     private var monthNavigator: some View {
-        HStack {
-            Button {
-                Task { await viewModel.navigateMonth(cardId, direction: 1) }
-            } label: {
-                Image(systemName: "chevron.left")
-                    .font(.body.weight(.semibold))
-                    .foregroundColor(viewModel.canGoForward ? AppTheme.accent : Color.gray.opacity(0.3))
-                    .frame(width: 36, height: 36)
-                    .background(viewModel.canGoForward ? AppTheme.accent.opacity(0.1) : Color.clear)
-                    .clipShape(Circle())
+        // RTL aware
+        let isRTL = layoutDirection == .rightToLeft
+        let backIcon = isRTL ? "chevron.right" : "chevron.left"
+        let forwardIcon = isRTL ? "chevron.left" : "chevron.right"
+
+        return GlassSurface(padding: 8) {
+            HStack {
+                navButton(icon: backIcon, enabled: viewModel.canGoBack) {
+                    Task { await viewModel.navigateMonth(cardId, direction: -1) }
+                }
+                Spacer()
+                VStack(spacing: 1) {
+                    Text("billing_history")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                        .textCase(.uppercase)
+                        .tracking(0.4)
+                    Text(viewModel.selectedMonthDisplayName)
+                        .font(AppFont.titleS)
+                }
+                Spacer()
+                navButton(icon: forwardIcon, enabled: viewModel.canGoForward) {
+                    Task { await viewModel.navigateMonth(cardId, direction: 1) }
+                }
             }
-            .disabled(!viewModel.canGoForward)
-
-            Spacer()
-
-            VStack(spacing: 2) {
-                Text("billing_history")
-                    .font(.caption2.weight(.medium))
-                    .foregroundStyle(.secondary)
-                Text(viewModel.selectedMonthDisplayName)
-                    .font(.headline.weight(.bold))
-            }
-
-            Spacer()
-
-            Button {
-                Task { await viewModel.navigateMonth(cardId, direction: -1) }
-            } label: {
-                Image(systemName: "chevron.right")
-                    .font(.body.weight(.semibold))
-                    .foregroundColor(viewModel.canGoBack ? AppTheme.accent : Color.gray.opacity(0.3))
-                    .frame(width: 36, height: 36)
-                    .background(viewModel.canGoBack ? AppTheme.accent.opacity(0.1) : Color.clear)
-                    .clipShape(Circle())
-            }
-            .disabled(!viewModel.canGoBack)
         }
-        .padding(.horizontal, 4)
-        .environment(\.layoutDirection, .leftToRight)
+    }
+
+    private func navButton(icon: String, enabled: Bool, action: @escaping () -> Void) -> some View {
+        Button {
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            action()
+        } label: {
+            Image(systemName: icon)
+                .font(.system(size: 13, weight: .bold))
+                .foregroundStyle(enabled ? BrandColor.primary : Color.secondary.opacity(0.4))
+                .frame(width: 36, height: 36)
+                .background(enabled ? BrandColor.primary.opacity(0.12) : Color.clear)
+                .clipShape(Circle())
+        }
+        .disabled(!enabled)
     }
 
     // MARK: - Monthly Summary
 
     private func monthlySummaryCard(_ summary: CreditCardHistorySummary) -> some View {
-        SolidCard {
+        GlassSurface {
             VStack(spacing: 12) {
-                HStack {
-                    summaryRow(title: "total_expenses", amount: summary.totalExpenses, color: AppTheme.expense)
-                    Spacer()
-                    summaryRow(title: "total_credits", amount: summary.totalCredits, color: AppTheme.income)
+                HStack(spacing: 16) {
+                    summaryItem(title: "total_expenses", amount: summary.totalExpenses, color: BrandColor.expense)
+                    Divider().frame(height: 36)
+                    summaryItem(title: "total_credits", amount: summary.totalCredits, color: BrandColor.income)
                 }
 
                 Divider()
 
                 HStack {
-                    Text("net_charge")
-                        .font(.subheadline.weight(.semibold))
+                    Text("net_charge").font(AppFont.titleS)
                     Spacer()
                     Text(CurrencyHelper.format(summary.netCharge))
-                        .font(.title3.weight(.bold).monospacedDigit())
-                        .foregroundStyle(summary.netCharge > 0 ? AppTheme.expense : AppTheme.income)
+                        .font(AppFont.amount)
+                        .foregroundStyle(summary.netCharge > 0 ? BrandColor.expense : BrandColor.income)
                 }
             }
-            .padding(16)
         }
     }
 
-    private func summaryRow(title: LocalizedStringKey, amount: Double, color: Color) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
+    private func summaryItem(title: LocalizedStringKey, amount: Double, color: Color) -> some View {
+        VStack(alignment: .leading, spacing: 3) {
             Text(title)
-                .font(.caption.weight(.medium))
+                .font(.system(size: 11, weight: .semibold))
                 .foregroundStyle(.secondary)
+                .textCase(.uppercase)
+                .tracking(0.4)
             Text(CurrencyHelper.format(amount))
-                .font(.subheadline.weight(.bold).monospacedDigit())
+                .font(AppFont.amountSmall)
                 .foregroundStyle(color)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    // MARK: - History Transactions List
+    // MARK: - History Transactions
 
     private var historyTransactionsList: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        Group {
             if viewModel.historyTransactions.isEmpty && !viewModel.isLoading {
-                EmptyStateView(
-                    icon: "creditcard.trianglebadge.exclamationmark",
-                    title: "no_charges_this_month",
-                    message: "card_transactions_empty_message"
-                )
+                GlassSurface {
+                    EmptyStateCard(
+                        icon: "creditcard.trianglebadge.exclamationmark",
+                        title: "no_charges_this_month",
+                        message: "card_transactions_empty_message"
+                    )
+                }
             } else if !viewModel.historyTransactions.isEmpty {
-                SolidCard {
+                GlassSurface(padding: 0) {
                     VStack(spacing: 0) {
                         ForEach(Array(viewModel.historyTransactions.enumerated()), id: \.element.id) { index, transaction in
                             TransactionRowView(transaction: transaction)
-                                .padding(.horizontal, 16)
+                                .padding(.horizontal, 14)
                                 .padding(.vertical, 12)
-
                             if index < viewModel.historyTransactions.count - 1 {
-                                Divider().padding(.leading, 68)
+                                Divider().padding(.leading, 64)
                             }
                         }
                     }
@@ -231,43 +279,15 @@ struct CreditCardDetailView: View {
         }
     }
 
-    // MARK: - Info Card
-
-    private func infoCard(title: LocalizedStringKey, value: String, icon: String, gradient: LinearGradient) -> some View {
-        SolidCard {
-            VStack(alignment: .leading, spacing: 10) {
-                Image(systemName: icon)
-                    .font(.caption.weight(.bold))
-                    .foregroundStyle(.white)
-                    .frame(width: 28, height: 28)
-                    .background(gradient)
-                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-
-                Text(title)
-                    .font(.caption.weight(.medium))
-                    .foregroundStyle(.secondary)
-
-                Text(value)
-                    .font(.subheadline.weight(.bold).monospacedDigit())
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.7)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(16)
-        }
-    }
-
     private func nextBillingDateString(_ billingDay: Int) -> String {
         let cal = Calendar.current
         let now = Date()
         let currentDay = cal.component(.day, from: now)
-
         var components = cal.dateComponents([.year, .month], from: now)
         if currentDay >= billingDay {
             components.month = (components.month ?? 1) + 1
         }
         components.day = billingDay
-
         if let date = cal.date(from: components) {
             return DateHelper.displayFormatter.string(from: date)
         }

@@ -192,6 +192,7 @@ async function processCreditCardBilling() {
               userId: card.userId,
               creditCardId: null,
               isBilled: true,
+              isBillingCharge: true,
             }, { transaction: t });
           }
 

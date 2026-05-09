@@ -281,6 +281,7 @@ router.post('/:id/bill', async (req, res) => {
         userId: req.userId,
         creditCardId: null,
         isBilled: true,
+        isBillingCharge: true,
       }, { transaction: t });
 
       card.lastBilledAt = todayStr;

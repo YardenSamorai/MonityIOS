@@ -4,81 +4,107 @@ import Charts
 struct CategoryPieChart: View {
     let categories: [CategorySummary]
     @State private var selectedCategory: CategorySummary?
-    @State private var chartRevealed = false
 
     var body: some View {
-        SolidCard {
+        GlassSurface {
             VStack(alignment: .leading, spacing: 16) {
-                HStack {
-                    GradientIcon(systemName: "chart.pie.fill", gradient: AppTheme.expenseGradient)
-                    Text("expenses_by_category")
-                        .font(.headline)
+                HStack(spacing: 10) {
+                    ZStack {
+                        Circle().fill(BrandColor.expense.opacity(0.13))
+                        Image(systemName: "chart.pie.fill")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundStyle(BrandColor.expense)
+                    }
+                    .frame(width: 32, height: 32)
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text("expenses_by_category")
+                            .font(AppFont.titleS)
+                        Text("expenses_by_category_subtitle")
+                            .font(AppFont.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 }
 
                 ZStack {
                     Chart(categories) { cat in
                         SectorMark(
-                            angle: .value("Amount", chartRevealed ? cat.totalAmount : 0),
+                            angle: .value("Amount", cat.totalAmount),
                             innerRadius: .ratio(0.65),
                             angularInset: 2
                         )
-                        .foregroundStyle(Color(hex: cat.Category?.color ?? "#6C63FF"))
+                        .foregroundStyle(Color(hex: cat.Category?.color ?? "#0A6B5F"))
                         .cornerRadius(6)
-                        .opacity(selectedCategory == nil || selectedCategory?.id == cat.id ? 1 : 0.4)
+                        .opacity(selectedCategory == nil || selectedCategory?.id == cat.id ? 1 : 0.35)
                     }
                     .chartOverlay { _ in
                         if let selected = selectedCategory {
-                            VStack(spacing: 2) {
+                            VStack(spacing: 4) {
                                 Text(selected.Category?.icon ?? "")
                                     .font(.title2)
-                                    .transition(.scale.combined(with: .opacity))
+                                Text(selected.Category?.localizedName ?? "")
+                                    .font(AppFont.caption)
+                                    .foregroundStyle(.secondary)
                                 Text(CurrencyHelper.format(selected.totalAmount))
-                                    .font(.subheadline.weight(.bold).monospacedDigit())
-                                    .contentTransition(.numericText())
+                                    .font(AppFont.amountSmall)
+                            }
+                        } else {
+                            VStack(spacing: 2) {
+                                Text("total")
+                                    .font(.system(size: 10, weight: .semibold))
+                                    .foregroundStyle(.secondary)
+                                    .textCase(.uppercase)
+                                    .tracking(0.4)
+                                Text(CurrencyHelper.format(totalAmount))
+                                    .font(AppFont.amountSmall)
+                                    .foregroundStyle(.primary)
                             }
                         }
                     }
                     .onTapGesture {
-                        withAnimation(.spring(response: 0.3)) { selectedCategory = nil }
+                        withAnimation(Motion.snappy) { selectedCategory = nil }
                     }
                 }
                 .frame(height: 200)
-                .onAppear {
-                    withAnimation(.easeOut(duration: 1.0).delay(0.2)) {
-                        chartRevealed = true
-                    }
-                }
 
-                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
-                    ForEach(Array(categories.enumerated()), id: \.element.id) { index, cat in
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
+                    ForEach(categories) { cat in
                         Button {
                             UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                            withAnimation(.spring(response: 0.3)) {
+                            withAnimation(Motion.snappy) {
                                 selectedCategory = selectedCategory?.id == cat.id ? nil : cat
                             }
                         } label: {
                             HStack(spacing: 8) {
                                 Circle()
-                                    .fill(Color(hex: cat.Category?.color ?? "#6C63FF"))
+                                    .fill(Color(hex: cat.Category?.color ?? "#0A6B5F"))
                                     .frame(width: 8, height: 8)
                                 Text(cat.Category?.icon ?? "")
                                     .font(.caption)
                                 Text(cat.Category?.localizedName ?? "")
-                                    .font(.caption)
+                                    .font(AppFont.caption)
                                     .foregroundStyle(.primary)
                                     .lineLimit(1)
+                                Spacer(minLength: 0)
+                                Text(CurrencyHelper.format(cat.totalAmount))
+                                    .font(.system(size: 11, weight: .bold).monospacedDigit())
+                                    .foregroundStyle(.secondary)
                             }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(8)
-                            .background(selectedCategory?.id == cat.id ? AppTheme.accent.opacity(0.08) : .clear)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(
+                                selectedCategory?.id == cat.id
+                                    ? Color(hex: cat.Category?.color ?? "#0A6B5F").opacity(0.1)
+                                    : Color.clear
+                            )
                             .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-                            .scaleEffect(selectedCategory?.id == cat.id ? 1.05 : 1.0)
                         }
-                        .bounceIn(delay: Double(index) * 0.05 + 0.5)
                     }
                 }
             }
-            .padding(20)
         }
+    }
+
+    private var totalAmount: Double {
+        categories.reduce(0) { $0 + $1.totalAmount }
     }
 }

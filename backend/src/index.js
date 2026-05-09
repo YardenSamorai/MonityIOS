@@ -70,6 +70,18 @@ async function start() {
       console.log('Models synchronized (alter mode)');
     }
 
+    try {
+      const [results] = await sequelize.query(
+        `UPDATE transactions SET is_billing_charge = 1
+         WHERE is_billing_charge = 0
+           AND credit_card_id IS NULL
+           AND (note LIKE 'חיוב כרטיס%' OR note LIKE 'Bill%' OR note LIKE 'Card charge%')`
+      );
+      console.log('Backfill: marked old billing charge transactions');
+    } catch (err) {
+      console.warn('Backfill warning:', err.message);
+    }
+
     startRecurringJob();
 
     app.listen(PORT, '0.0.0.0', () => {

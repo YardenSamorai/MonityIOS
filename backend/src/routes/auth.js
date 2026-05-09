@@ -1,10 +1,32 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
-const { User, HouseholdMember } = require('../models');
+const crypto = require('crypto');
+const { Op } = require('sequelize');
+const { User, HouseholdMember, PasswordResetToken } = require('../models');
 const { generateToken, authMiddleware } = require('../middleware/auth');
 const { seedDefaultCategories } = require('../seeders/defaultCategories');
+const { sendOtpEmail } = require('../services/emailService');
 
 const router = express.Router();
+
+const OTP_EXPIRY_MINUTES = 15;
+const OTP_MAX_ATTEMPTS = 5;
+const RESET_TOKEN_EXPIRY_MINUTES = 15;
+const FORGOT_RATE_LIMIT_MINUTES = 1;
+
+function generateOtpCode() {
+  const buf = crypto.randomBytes(4).readUInt32BE(0);
+  const code = (buf % 1000000).toString().padStart(6, '0');
+  return code;
+}
+
+function hashCode(code) {
+  return crypto.createHash('sha256').update(code).digest('hex');
+}
+
+function isExpired(date) {
+  return new Date() > new Date(date);
+}
 
 router.post('/register', async (req, res) => {
   try {
@@ -114,38 +136,160 @@ router.post('/login', async (req, res) => {
   }
 });
 
-router.post('/reset-password', async (req, res) => {
+router.post('/forgot-password', async (req, res) => {
   try {
-    if (process.env.ALLOW_PASSWORD_RESET !== 'true') {
-      return res.status(503).json({
-        error: 'Password reset is currently disabled. Please contact support to reset your password.',
+    const { email, locale } = req.body;
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+
+    const normalizedEmail = String(email).toLowerCase().trim();
+    const language = (locale === 'en' || locale === 'he') ? locale : 'he';
+
+    const genericResponse = { message: 'If an account exists for this email, a code has been sent.' };
+
+    const user = await User.findOne({ where: { email: normalizedEmail } });
+    if (!user) {
+      return res.json(genericResponse);
+    }
+
+    const recent = await PasswordResetToken.findOne({
+      where: {
+        email: normalizedEmail,
+        createdAt: { [Op.gte]: new Date(Date.now() - FORGOT_RATE_LIMIT_MINUTES * 60 * 1000) },
+        used: false,
+      },
+      order: [['createdAt', 'DESC']],
+    });
+    if (recent) {
+      return res.status(429).json({
+        error: 'Please wait a moment before requesting another code.',
       });
     }
 
-    const { email, newPassword, currentPassword } = req.body;
+    await PasswordResetToken.update(
+      { used: true },
+      { where: { userId: user.id, used: false } }
+    );
 
-    if (!email || !newPassword) {
-      return res.status(400).json({ error: 'Email and new password are required' });
+    const code = generateOtpCode();
+    const codeHash = hashCode(code);
+    const expiresAt = new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000);
+
+    await PasswordResetToken.create({
+      userId: user.id,
+      email: normalizedEmail,
+      codeHash,
+      expiresAt,
+    });
+
+    await sendOtpEmail(normalizedEmail, code, language);
+
+    return res.json(genericResponse);
+  } catch (err) {
+    console.error('Forgot password error:', err);
+    res.status(500).json({ error: 'Failed to process request' });
+  }
+});
+
+router.post('/verify-otp', async (req, res) => {
+  try {
+    const { email, code } = req.body;
+    if (!email || !code) {
+      return res.status(400).json({ error: 'Email and code are required' });
+    }
+
+    const normalizedEmail = String(email).toLowerCase().trim();
+    const codeStr = String(code).trim();
+
+    const tokenRecord = await PasswordResetToken.findOne({
+      where: { email: normalizedEmail, used: false, verified: false },
+      order: [['createdAt', 'DESC']],
+    });
+
+    if (!tokenRecord) {
+      return res.status(400).json({ error: 'Invalid or expired code. Please request a new one.' });
+    }
+
+    if (isExpired(tokenRecord.expiresAt)) {
+      tokenRecord.used = true;
+      await tokenRecord.save();
+      return res.status(400).json({ error: 'Code has expired. Please request a new one.' });
+    }
+
+    if (tokenRecord.attempts >= OTP_MAX_ATTEMPTS) {
+      tokenRecord.used = true;
+      await tokenRecord.save();
+      return res.status(429).json({ error: 'Too many attempts. Please request a new code.' });
+    }
+
+    const expectedHash = hashCode(codeStr);
+    if (expectedHash !== tokenRecord.codeHash) {
+      tokenRecord.attempts += 1;
+      await tokenRecord.save();
+      return res.status(400).json({ error: 'Invalid code.' });
+    }
+
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    tokenRecord.resetToken = resetToken;
+    tokenRecord.verified = true;
+    tokenRecord.expiresAt = new Date(Date.now() + RESET_TOKEN_EXPIRY_MINUTES * 60 * 1000);
+    await tokenRecord.save();
+
+    return res.json({ resetToken });
+  } catch (err) {
+    console.error('Verify OTP error:', err);
+    res.status(500).json({ error: 'Failed to verify code' });
+  }
+});
+
+router.post('/reset-password', async (req, res) => {
+  try {
+    const { email, resetToken, newPassword } = req.body;
+
+    if (!email || !resetToken || !newPassword) {
+      return res.status(400).json({ error: 'Email, reset token, and new password are required' });
     }
     if (newPassword.length < 6) {
       return res.status(400).json({ error: 'Password must be at least 6 characters' });
     }
 
-    const user = await User.findOne({ where: { email: email.toLowerCase() } });
+    const normalizedEmail = String(email).toLowerCase().trim();
+
+    const tokenRecord = await PasswordResetToken.findOne({
+      where: {
+        email: normalizedEmail,
+        resetToken,
+        verified: true,
+        used: false,
+      },
+    });
+
+    if (!tokenRecord) {
+      return res.status(400).json({ error: 'Invalid or expired reset session.' });
+    }
+
+    if (isExpired(tokenRecord.expiresAt)) {
+      tokenRecord.used = true;
+      await tokenRecord.save();
+      return res.status(400).json({ error: 'Reset session expired. Please start over.' });
+    }
+
+    const user = await User.findByPk(tokenRecord.userId);
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    if (!currentPassword) {
-      return res.status(400).json({ error: 'Current password is required' });
-    }
-    const valid = await bcrypt.compare(currentPassword, user.passwordHash);
-    if (!valid) {
-      return res.status(401).json({ error: 'Invalid current password' });
-    }
-
     user.passwordHash = await bcrypt.hash(newPassword, 12);
     await user.save();
+
+    tokenRecord.used = true;
+    await tokenRecord.save();
+
+    await PasswordResetToken.update(
+      { used: true },
+      { where: { userId: user.id, used: false } }
+    );
 
     res.json({ message: 'Password reset successfully' });
   } catch (err) {

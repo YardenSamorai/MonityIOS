@@ -4,58 +4,79 @@ struct DashboardView: View {
     @EnvironmentObject var authService: AuthService
     @StateObject private var viewModel = DashboardViewModel()
     @State private var showAddTransaction = false
-    @State private var addButtonRotation: Double = 0
+    @State private var appeared = false
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         NavigationStack {
-            ScrollView(showsIndicators: false) {
-                VStack(spacing: 20) {
-                    heroCard
+            ZStack {
+                CanvasBackground()
 
-                    availableToSpendCard
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: 18) {
+                        topGreeting
+                            .opacity(appeared ? 1 : 0)
+                            .offset(y: appeared ? 0 : -8)
 
-                    incomeExpenseRow
+                        heroBalanceCard
+                            .opacity(appeared ? 1 : 0)
+                            .offset(y: appeared ? 0 : 12)
 
-                    if !viewModel.creditCards.isEmpty {
-                        creditCardsStrip
-                    }
+                        availableToSpendCard
+                            .opacity(appeared ? 1 : 0)
+                            .offset(y: appeared ? 0 : 16)
 
-                    if !viewModel.recurringExpenses.isEmpty {
-                        recurringExpensesSection
-                    }
+                        incomeExpenseRow
+                            .opacity(appeared ? 1 : 0)
+                            .offset(y: appeared ? 0 : 20)
 
-                    if !viewModel.recurringIncome.isEmpty {
-                        recurringIncomeSection
-                    }
-
-                    if !viewModel.budgetStatuses.isEmpty {
-                        budgetSection
-                    }
-
-                    recentTransactionsSection
-                }
-                .padding(.horizontal, 20)
-                .padding(.top, 8)
-                .padding(.bottom, 100)
-            }
-            .navigationTitle(greetingText)
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button {
-                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) {
-                            addButtonRotation += 90
+                        if !viewModel.creditCards.isEmpty {
+                            creditCardsSection
+                                .opacity(appeared ? 1 : 0)
+                                .offset(y: appeared ? 0 : 24)
                         }
+
+                        if !viewModel.budgetStatuses.isEmpty {
+                            budgetSection
+                                .opacity(appeared ? 1 : 0)
+                                .offset(y: appeared ? 0 : 24)
+                        }
+
+                        if !viewModel.recurringIncome.isEmpty {
+                            recurringSection(
+                                title: "fixed_income_title",
+                                icon: "arrow.down.left",
+                                tint: BrandColor.income,
+                                items: viewModel.recurringIncome
+                            )
+                            .opacity(appeared ? 1 : 0)
+                        }
+
+                        if !viewModel.recurringExpenses.isEmpty {
+                            recurringSection(
+                                title: "fixed_expenses_title",
+                                icon: "arrow.up.right",
+                                tint: BrandColor.expense,
+                                items: viewModel.recurringExpenses
+                            )
+                            .opacity(appeared ? 1 : 0)
+                        }
+
+                        recentTransactionsSection
+                            .opacity(appeared ? 1 : 0)
+                    }
+                    .padding(.horizontal, Spacing.screenHorizontal)
+                    .padding(.top, 4)
+                    .padding(.bottom, 110)
+                }
+                .animation(Motion.smooth, value: appeared)
+                .refreshable { await viewModel.loadDashboard() }
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    FloatingPlusButton {
                         showAddTransaction = true
-                    } label: {
-                        Image(systemName: "plus")
-                            .font(.body.weight(.semibold))
-                            .foregroundStyle(.white)
-                            .frame(width: 34, height: 34)
-                            .background(AppTheme.primaryGradient)
-                            .clipShape(Circle())
-                            .rotationEffect(.degrees(addButtonRotation))
-                            .shadow(color: AppTheme.accent.opacity(0.3), radius: 8, y: 4)
                     }
                 }
             }
@@ -64,267 +85,316 @@ struct DashboardView: View {
                     Task { await viewModel.loadDashboard() }
                 }
             }
-            .refreshable { await viewModel.loadDashboard() }
             .task {
                 await viewModel.loadDashboard()
+                withAnimation(Motion.smooth) { appeared = true }
+            }
+            .onChange(of: scenePhase) { _, newPhase in
+                if newPhase == .active {
+                    Task { await viewModel.loadDashboard() }
+                }
             }
         }
     }
 
-    private var greetingText: String {
-        let hour = Calendar.current.component(.hour, from: Date())
-        let greeting: String
-        if hour < 12 { greeting = L("good_morning") }
-        else if hour < 17 { greeting = L("good_afternoon") }
-        else { greeting = L("good_evening") }
+    // MARK: - Top Greeting
 
-        if let name = authService.currentUser?.name.split(separator: " ").first {
-            return "\(greeting), \(name)"
+    private var topGreeting: some View {
+        HStack(alignment: .firstTextBaseline) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(greetingPrefix)
+                    .font(AppFont.caption)
+                    .foregroundStyle(.secondary)
+                    .textCase(.uppercase)
+                    .tracking(0.5)
+                Text(userFirstName)
+                    .font(AppFont.titleL)
+                    .foregroundStyle(.primary)
+            }
+            Spacer()
+            Text(monthName)
+                .font(AppFont.label)
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(
+                    Capsule().fill(.ultraThinMaterial)
+                )
+                .overlay(
+                    Capsule().strokeBorder(Surface.separator.opacity(0.4), lineWidth: 0.5)
+                )
         }
-        return greeting
     }
 
-    // MARK: - Hero Card (Balance)
+    private var greetingPrefix: String {
+        let hour = Calendar.current.component(.hour, from: Date())
+        if hour < 12 { return L("good_morning") }
+        if hour < 17 { return L("good_afternoon") }
+        return L("good_evening")
+    }
 
-    private var heroCard: some View {
+    private var userFirstName: String {
+        if let name = authService.currentUser?.name.split(separator: " ").first {
+            return String(name)
+        }
+        return ""
+    }
+
+    private var monthName: String {
+        let (from, _) = DateHelper.currentMonthRange()
+        return DateHelper.monthName(from: from)
+    }
+
+    // MARK: - Hero Balance Card
+
+    private var heroBalanceCard: some View {
         NavigationLink {
             BalanceDetailView(viewModel: viewModel)
         } label: {
-            VStack(spacing: 8) {
-                Text("balance")
-                    .font(.subheadline.weight(.medium))
-                    .foregroundStyle(.white.opacity(0.8))
+            FeatureGlassCard(
+                gradient: LinearGradient(
+                    colors: [
+                        BrandColor.primaryDeep,
+                        BrandColor.primary,
+                        BrandColor.primary.opacity(0.85),
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                ),
+                glowColor: BrandColor.primary
+            ) {
+                VStack(alignment: .leading, spacing: 18) {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("balance")
+                                .font(AppFont.label)
+                                .foregroundStyle(.white.opacity(0.7))
+                                .textCase(.uppercase)
+                                .tracking(0.5)
+                            Text(L("hero_subtitle"))
+                                .font(AppFont.caption)
+                                .foregroundStyle(.white.opacity(0.55))
+                        }
+                        Spacer()
+                        ZStack {
+                            Circle()
+                                .fill(.white.opacity(0.18))
+                                .frame(width: 32, height: 32)
+                            Image(systemName: "chart.line.uptrend.xyaxis")
+                                .font(.system(size: 14, weight: .bold))
+                                .foregroundStyle(.white)
+                        }
+                    }
 
-                Text(CurrencyHelper.format(viewModel.summary?.balance ?? 0))
-                    .font(.system(size: 38, weight: .bold, design: .rounded))
-                    .foregroundStyle(.white)
+                    Text(CurrencyHelper.format(viewModel.summary?.balance ?? 0))
+                        .font(AppFont.amountDisplay)
+                        .foregroundStyle(.white)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.6)
 
-                let (from, _) = DateHelper.currentMonthRange()
-                Text(DateHelper.monthName(from: from))
-                    .font(.caption.weight(.medium))
-                    .foregroundStyle(.white.opacity(0.6))
+                    HStack(spacing: 8) {
+                        miniStat(label: "income", value: viewModel.summary?.income ?? 0, icon: "arrow.down.left", positive: true)
+                        Rectangle().fill(Color.white.opacity(0.18)).frame(width: 1, height: 22)
+                        miniStat(label: "expenses", value: viewModel.summary?.expense ?? 0, icon: "arrow.up.right", positive: false)
+                    }
+                }
             }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 32)
-            .background(
-                RoundedRectangle(cornerRadius: 28, style: .continuous)
-                    .fill(AppTheme.primaryGradient)
-                    .shadow(color: AppTheme.accent.opacity(0.3), radius: 20, y: 10)
-            )
         }
         .buttonStyle(.plain)
+    }
+
+    private func miniStat(label: LocalizedStringKey, value: Double, icon: String, positive: Bool) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: icon)
+                .font(.system(size: 10, weight: .bold))
+                .foregroundStyle(.white.opacity(0.9))
+            VStack(alignment: .leading, spacing: 0) {
+                Text(label)
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.55))
+                    .textCase(.uppercase)
+                    .tracking(0.4)
+                Text(CurrencyHelper.format(value))
+                    .font(AppFont.amountSmall)
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+            }
+            Spacer(minLength: 0)
+        }
     }
 
     // MARK: - Available to Spend
 
     private var availableToSpendCard: some View {
-        SolidCard {
-            VStack(spacing: 14) {
+        GlassSurface(elevation: .raised) {
+            VStack(alignment: .leading, spacing: 14) {
                 HStack {
-                    HStack(spacing: 8) {
-                        Image(systemName: "shield.checkered")
-                            .font(.body.weight(.semibold))
-                            .foregroundStyle(statusColor)
+                    Label {
                         Text("available_to_spend")
-                            .font(.subheadline.weight(.semibold))
+                            .font(AppFont.titleS)
+                    } icon: {
+                        Image(systemName: "wallet.pass.fill")
+                            .font(.system(size: 16))
+                            .foregroundStyle(BrandColor.primary)
                     }
                     Spacer()
-                    Text(statusText)
-                        .font(.caption2.weight(.bold))
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
-                        .background(statusColor)
-                        .clipShape(Capsule())
+                    StatusBadge(text: LocalizedStringKey(statusText), color: statusColor, icon: statusIcon)
                 }
 
                 Text(CurrencyHelper.format(viewModel.availableToSpend))
-                    .font(.system(size: 28, weight: .bold, design: .rounded).monospacedDigit())
-                    .foregroundStyle(viewModel.availableToSpend >= 0 ? AppTheme.income : .red)
+                    .font(AppFont.amountLarge)
+                    .foregroundStyle(viewModel.availableToSpend >= 0 ? Color.primary : BrandColor.expense)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
-                VStack(spacing: 8) {
-                    if viewModel.totalCreditCardPending > 0 {
-                        breakdownRow(
-                            icon: "creditcard.fill",
-                            label: "pending_card_charges",
-                            amount: -viewModel.totalCreditCardPending,
-                            color: .orange
-                        )
-                    }
-                    if viewModel.totalPendingExpenses > 0 {
-                        breakdownRow(
-                            icon: "arrow.triangle.2.circlepath",
-                            label: "upcoming_fixed_expenses",
-                            amount: -viewModel.totalPendingExpenses,
-                            color: AppTheme.expense
-                        )
-                    }
-                    if viewModel.totalPendingIncome > 0 {
-                        breakdownRow(
-                            icon: "arrow.down.circle.fill",
-                            label: "expected_income",
-                            amount: viewModel.totalPendingIncome,
-                            color: AppTheme.income
-                        )
-                    }
-                }
+                if hasBreakdown {
+                    VStack(spacing: 8) {
+                        Divider().padding(.vertical, 2)
 
-                if viewModel.totalCreditCardPending > 0 || viewModel.totalPendingExpenses > 0 || viewModel.totalPendingIncome > 0 {
-                    Divider()
+                        if viewModel.totalCreditCardPending > 0 {
+                            breakdownRow(icon: "creditcard.fill", label: "pending_card_charges", amount: -viewModel.totalCreditCardPending, color: BrandColor.warning)
+                        }
+                        if viewModel.totalPendingExpenses > 0 {
+                            breakdownRow(icon: "arrow.triangle.2.circlepath", label: "upcoming_fixed_expenses", amount: -viewModel.totalPendingExpenses, color: BrandColor.expense)
+                        }
+                        if viewModel.totalPendingIncome > 0 {
+                            breakdownRow(icon: "arrow.down.circle.fill", label: "expected_income", amount: viewModel.totalPendingIncome, color: BrandColor.income)
+                        }
 
-                    HStack {
-                        Image(systemName: "chart.line.text.clipboard")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                        Text("projected_end_of_month")
-                            .font(.caption.weight(.medium))
-                            .foregroundStyle(.secondary)
-                        Spacer()
-                        Text(CurrencyHelper.format(viewModel.projectedEndOfMonth))
-                            .font(.subheadline.weight(.bold).monospacedDigit())
-                            .foregroundColor(viewModel.projectedEndOfMonth >= 0 ? .primary : .red)
+                        Divider().padding(.vertical, 2)
+
+                        HStack {
+                            Image(systemName: "calendar.badge.clock")
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundStyle(.secondary)
+                            Text("projected_end_of_month")
+                                .font(AppFont.caption)
+                                .foregroundStyle(.secondary)
+                            Spacer()
+                            Text(CurrencyHelper.format(viewModel.projectedEndOfMonth))
+                                .font(AppFont.amountSmall)
+                                .foregroundStyle(viewModel.projectedEndOfMonth >= 0 ? Color.primary : BrandColor.expense)
+                        }
                     }
                 }
             }
-            .padding(18)
         }
+    }
+
+    private var hasBreakdown: Bool {
+        viewModel.totalCreditCardPending > 0
+            || viewModel.totalPendingExpenses > 0
+            || viewModel.totalPendingIncome > 0
     }
 
     private func breakdownRow(icon: String, label: LocalizedStringKey, amount: Double, color: Color) -> some View {
         HStack(spacing: 10) {
-            Image(systemName: icon)
-                .font(.caption)
-                .foregroundStyle(color)
-                .frame(width: 20)
+            ZStack {
+                Circle().fill(color.opacity(0.13))
+                Image(systemName: icon)
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundStyle(color)
+            }
+            .frame(width: 22, height: 22)
+
             Text(label)
-                .font(.caption)
+                .font(AppFont.caption)
                 .foregroundStyle(.secondary)
             Spacer()
-            Text((amount >= 0 ? "+" : "") + CurrencyHelper.format(abs(amount)))
-                .font(.caption.weight(.semibold).monospacedDigit())
-                .foregroundStyle(amount >= 0 ? AppTheme.income : color)
+            Text((amount >= 0 ? "+" : "−") + CurrencyHelper.format(Swift.abs(amount)))
+                .font(AppFont.amountSmall)
+                .foregroundStyle(amount >= 0 ? BrandColor.income : color)
         }
     }
 
     private var statusColor: Color {
         let available = viewModel.availableToSpend
-        if available < 0 { return .red }
-        if available < (viewModel.summary?.income ?? 0) * 0.1 { return .orange }
-        return AppTheme.income
+        if available < 0 { return BrandColor.expense }
+        if available < (viewModel.summary?.income ?? 0) * 0.1 { return BrandColor.warning }
+        return BrandColor.income
+    }
+
+    private var statusIcon: String {
+        let available = viewModel.availableToSpend
+        if available < 0 { return "exclamationmark.triangle.fill" }
+        if available < (viewModel.summary?.income ?? 0) * 0.1 { return "exclamationmark.circle.fill" }
+        return "checkmark.seal.fill"
     }
 
     private var statusText: String {
         let available = viewModel.availableToSpend
-        if available < 0 { return L("status_overdraft") }
-        if available < (viewModel.summary?.income ?? 0) * 0.1 { return L("status_tight") }
-        return L("status_good")
+        if available < 0 { return "status_overdraft" }
+        if available < (viewModel.summary?.income ?? 0) * 0.1 { return "status_tight" }
+        return "status_good"
     }
 
     // MARK: - Income / Expense Row
 
     private var incomeExpenseRow: some View {
         HStack(spacing: 14) {
-            summaryCard(
-                title: "expenses",
-                total: viewModel.summary?.expense ?? 0,
-                fixedAmount: viewModel.fixedExpensesDone,
-                variableAmount: viewModel.variableExpenses,
-                fixedLabel: "fixed_short",
-                variableLabel: "variable_short",
-                icon: "arrow.up.right",
-                color: AppTheme.expense,
-                gradient: AppTheme.expenseGradient
-            )
-
-            summaryCard(
+            statBlock(
                 title: "income",
-                total: viewModel.summary?.income ?? 0,
-                fixedAmount: viewModel.fixedIncomeDone,
-                variableAmount: viewModel.variableIncome,
-                fixedLabel: "fixed_short",
-                variableLabel: "variable_short",
+                amount: viewModel.summary?.income ?? 0,
                 icon: "arrow.down.left",
-                color: AppTheme.income,
-                gradient: AppTheme.incomeGradient
+                color: BrandColor.income
+            )
+            statBlock(
+                title: "expenses",
+                amount: viewModel.summary?.expense ?? 0,
+                icon: "arrow.up.right",
+                color: BrandColor.expense
             )
         }
     }
 
-    private func summaryCard(
-        title: LocalizedStringKey, total: Double,
-        fixedAmount: Double, variableAmount: Double,
-        fixedLabel: LocalizedStringKey, variableLabel: LocalizedStringKey,
-        icon: String, color: Color, gradient: LinearGradient
-    ) -> some View {
-        SolidCard {
+    private func statBlock(title: LocalizedStringKey, amount: Double, icon: String, color: Color) -> some View {
+        GlassSurface(padding: 16) {
             VStack(alignment: .leading, spacing: 10) {
                 HStack {
-                    Image(systemName: icon)
-                        .font(.caption.weight(.bold))
-                        .foregroundStyle(.white)
-                        .frame(width: 28, height: 28)
-                        .background(gradient)
-                        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    ZStack {
+                        Circle().fill(color.opacity(0.13))
+                        Image(systemName: icon)
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundStyle(color)
+                    }
+                    .frame(width: 28, height: 28)
                     Spacer()
-                    Text(title)
-                        .font(.caption.weight(.medium))
-                        .foregroundStyle(.secondary)
                 }
 
-                Text(CurrencyHelper.format(total))
-                    .font(.title3.weight(.bold).monospacedDigit())
-                    .foregroundStyle(color)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.7)
-
-                if fixedAmount > 0 || variableAmount > 0 {
-                    VStack(spacing: 4) {
-                        if fixedAmount > 0 {
-                            HStack(spacing: 4) {
-                                Circle().fill(color.opacity(0.7)).frame(width: 6, height: 6)
-                                Text(fixedLabel)
-                                    .font(.system(size: 10).weight(.medium))
-                                    .foregroundStyle(.secondary)
-                                Spacer()
-                                Text(CurrencyHelper.format(fixedAmount))
-                                    .font(.system(size: 10).weight(.semibold).monospacedDigit())
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                        if variableAmount > 0 {
-                            HStack(spacing: 4) {
-                                Circle().fill(color.opacity(0.35)).frame(width: 6, height: 6)
-                                Text(variableLabel)
-                                    .font(.system(size: 10).weight(.medium))
-                                    .foregroundStyle(.secondary)
-                                Spacer()
-                                Text(CurrencyHelper.format(variableAmount))
-                                    .font(.system(size: 10).weight(.semibold).monospacedDigit())
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                    }
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(title)
+                        .font(AppFont.caption)
+                        .foregroundStyle(.secondary)
+                        .textCase(.uppercase)
+                        .tracking(0.4)
+                    Text(CurrencyHelper.format(amount))
+                        .font(AppFont.amount)
+                        .foregroundStyle(color)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.6)
                 }
             }
-            .padding(16)
         }
     }
 
-    // MARK: - Credit Cards Strip
+    // MARK: - Credit Cards Section
 
-    private var creditCardsStrip: some View {
-        VStack(alignment: .leading, spacing: 14) {
+    private var creditCardsSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Text("credit_cards")
-                    .font(.title3.weight(.semibold))
+                    .font(AppFont.titleM)
                 Spacer()
                 NavigationLink {
                     CreditCardListView()
                 } label: {
-                    Text("see_all")
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(AppTheme.accent)
+                    HStack(spacing: 3) {
+                        Text("see_all").font(AppFont.label)
+                        Image(systemName: "chevron.right")
+                            .font(.caption2.weight(.bold))
+                            .environment(\.layoutDirection, .leftToRight)
+                    }
+                    .foregroundStyle(BrandColor.primary)
                 }
             }
 
@@ -334,70 +404,106 @@ struct DashboardView: View {
                         NavigationLink {
                             CreditCardDetailView(cardId: card.id)
                         } label: {
-                            miniCreditCard(card)
+                            miniCard(card)
                         }
                         .buttonStyle(.plain)
                     }
                 }
+                .padding(.horizontal, 2)
+                .padding(.vertical, 4)
             }
         }
     }
 
-    private func miniCreditCard(_ card: CreditCard) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                Text(card.name)
-                    .font(.caption.weight(.bold))
-                    .foregroundStyle(.white)
-                Spacer()
-                if !card.lastFourDigits.isEmpty {
-                    Text("•\(card.lastFourDigits)")
-                        .font(.caption2.weight(.medium).monospacedDigit())
-                        .foregroundStyle(.white.opacity(0.7))
-                }
-            }
-
-            Spacer()
-
-            Text(CurrencyHelper.format(card.currentBalance ?? 0))
-                .font(.subheadline.weight(.bold).monospacedDigit())
-                .foregroundStyle(.white)
-
-            HStack(spacing: 4) {
-                Image(systemName: "calendar")
-                    .font(.system(size: 8))
-                Text("\(L("billing_day")) \(card.billingDay)")
-                    .font(.caption2.weight(.medium))
-            }
-            .foregroundStyle(.white.opacity(0.7))
-        }
-        .frame(width: 160, height: 100)
-        .padding(14)
-        .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
+    private func miniCard(_ card: CreditCard) -> some View {
+        let cardColor = Color(hex: card.color)
+        return ZStack {
+            // Base color
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
                 .fill(LinearGradient(
-                    colors: [Color(hex: card.color), Color(hex: card.color).opacity(0.7)],
+                    colors: [cardColor, cardColor.opacity(0.7)],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 ))
-        )
+
+            // Glass shimmer overlay
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .stroke(
+                    LinearGradient(
+                        colors: [Color.white.opacity(0.4), Color.white.opacity(0.05)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1
+                )
+                .blendMode(.plusLighter)
+
+            // Content
+            VStack(alignment: .leading, spacing: 6) {
+                HStack {
+                    Text(card.name)
+                        .font(AppFont.label)
+                        .foregroundStyle(.white)
+                    Spacer()
+                    Image(systemName: "creditcard.fill")
+                        .font(.caption)
+                        .foregroundStyle(.white.opacity(0.85))
+                }
+                Spacer()
+                if !card.lastFourDigits.isEmpty {
+                    Text("• • • •  \(card.lastFourDigits)")
+                        .font(.system(size: 11, weight: .semibold).monospacedDigit())
+                        .foregroundStyle(.white.opacity(0.85))
+                        .tracking(1)
+                }
+                Text(CurrencyHelper.format(card.currentBalance ?? 0))
+                    .font(AppFont.amountSmall)
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+            }
+            .padding(14)
+        }
+        .frame(width: 170, height: 110)
+        .shadow(color: cardColor.opacity(0.35), radius: 12, y: 6)
     }
 
-    // MARK: - Recurring Expenses
+    // MARK: - Recurring Section (generic)
 
-    private var recurringExpensesSection: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text("fixed_expenses_title")
-                .font(.title3.weight(.semibold))
+    private func recurringSection(
+        title: LocalizedStringKey,
+        icon: String,
+        tint: Color,
+        items: [DashboardRecurringItem]
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text(title)
+                    .font(AppFont.titleM)
+                Spacer()
+                NavigationLink {
+                    RecurringListView()
+                } label: {
+                    HStack(spacing: 3) {
+                        Text("see_all").font(AppFont.label)
+                        Image(systemName: "chevron.right")
+                            .font(.caption2.weight(.bold))
+                            .environment(\.layoutDirection, .leftToRight)
+                    }
+                    .foregroundStyle(BrandColor.primary)
+                }
+            }
 
-            SolidCard {
+            GlassSurface(padding: 0) {
                 VStack(spacing: 0) {
-                    let items = Array(viewModel.recurringExpenses.prefix(5))
-                    ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
-                        recurringRow(item: item)
+                    let displayItems = Array(items.prefix(4))
+                    ForEach(Array(displayItems.enumerated()), id: \.element.id) { index, item in
+                        recurringRow(item: item, tint: tint)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 12)
 
-                        if index < items.count - 1 {
-                            Divider().padding(.leading, 68)
+                        if index < displayItems.count - 1 {
+                            Divider().padding(.leading, 64)
                         }
                     }
                 }
@@ -405,84 +511,63 @@ struct DashboardView: View {
         }
     }
 
-    // MARK: - Recurring Income
-
-    private var recurringIncomeSection: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text("fixed_income_title")
-                .font(.title3.weight(.semibold))
-
-            SolidCard {
-                VStack(spacing: 0) {
-                    let items = Array(viewModel.recurringIncome.prefix(5))
-                    ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
-                        recurringRow(item: item)
-
-                        if index < items.count - 1 {
-                            Divider().padding(.leading, 68)
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    private func recurringRow(item: DashboardRecurringItem) -> some View {
+    private func recurringRow(item: DashboardRecurringItem, tint: Color) -> some View {
         HStack(spacing: 12) {
-            ZStack(alignment: .bottomTrailing) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 11, style: .continuous)
+                    .fill(tint.opacity(0.12))
                 Text(item.rule.category?.icon ?? "💰")
-                    .font(.title3)
-                    .frame(width: 40, height: 40)
-                    .background(
-                        item.rule.type == .income
-                            ? AppTheme.income.opacity(0.12)
-                            : AppTheme.expense.opacity(0.12)
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: 11, style: .continuous))
-
-                if !item.isPending {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 14))
-                        .foregroundStyle(AppTheme.income)
-                        .background(Circle().fill(Color(.systemBackground)).frame(width: 12, height: 12))
-                        .offset(x: 4, y: 4)
-                }
+                    .font(.system(size: 18))
             }
+            .frame(width: 38, height: 38)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(item.rule.category?.localizedName ?? item.rule.note)
-                    .font(.caption.weight(.semibold))
-                Text(item.isPending ? L("status_pending") : L("status_done"))
-                    .font(.caption2.weight(.medium))
-                    .foregroundStyle(item.isPending ? .orange : AppTheme.income)
+                    .font(AppFont.label)
+                    .foregroundStyle(.primary)
+                HStack(spacing: 4) {
+                    Image(systemName: item.isPending ? "clock" : "checkmark.circle.fill")
+                        .font(.system(size: 9, weight: .bold))
+                    Text(item.isPending ? "status_pending" : "status_done")
+                        .font(.system(size: 11, weight: .semibold))
+                }
+                .foregroundStyle(item.isPending ? BrandColor.warning : BrandColor.income)
             }
 
             Spacer()
 
-            VStack(alignment: .trailing, spacing: 2) {
-                Text((item.rule.type == .income ? "+" : "-") + CurrencyHelper.format(item.rule.amount, currency: item.rule.currency))
-                    .font(.caption.weight(.bold).monospacedDigit())
-                    .foregroundStyle(item.rule.type == .income ? AppTheme.income : AppTheme.expense)
-
-                Text(LocalizedStringKey(item.rule.frequency.rawValue))
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-            }
+            Text((item.rule.type == .income ? "+" : "−") + CurrencyHelper.format(item.rule.amount, currency: item.rule.currency))
+                .font(AppFont.amountSmall)
+                .foregroundStyle(item.rule.type == .income ? BrandColor.income : BrandColor.expense)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
-        .opacity(item.isPending ? 1 : 0.6)
+        .opacity(item.isPending ? 1 : 0.7)
     }
 
     // MARK: - Budget Section
 
     private var budgetSection: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text("budget_status")
-                .font(.title3.weight(.semibold))
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("budget_status")
+                    .font(AppFont.titleM)
+                Spacer()
+                NavigationLink {
+                    BudgetListView()
+                } label: {
+                    HStack(spacing: 3) {
+                        Text("see_all").font(AppFont.label)
+                        Image(systemName: "chevron.right")
+                            .font(.caption2.weight(.bold))
+                            .environment(\.layoutDirection, .leftToRight)
+                    }
+                    .foregroundStyle(BrandColor.primary)
+                }
+            }
 
-            ForEach(viewModel.budgetStatuses) { budget in
-                BudgetProgressView(budget: budget)
+            VStack(spacing: 8) {
+                ForEach(viewModel.budgetStatuses.prefix(3)) { budget in
+                    BudgetProgressView(budget: budget)
+                }
             }
         }
     }
@@ -490,28 +575,34 @@ struct DashboardView: View {
     // MARK: - Recent Transactions
 
     private var recentTransactionsSection: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Text("recent_transactions")
-                    .font(.title3.weight(.semibold))
+                    .font(AppFont.titleM)
                 Spacer()
                 NavigationLink {
                     TransactionListView()
                 } label: {
-                    Text("see_all")
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(AppTheme.accent)
+                    HStack(spacing: 3) {
+                        Text("see_all").font(AppFont.label)
+                        Image(systemName: "chevron.right")
+                            .font(.caption2.weight(.bold))
+                            .environment(\.layoutDirection, .leftToRight)
+                    }
+                    .foregroundStyle(BrandColor.primary)
                 }
             }
 
             if viewModel.recentTransactions.isEmpty && !viewModel.isLoading {
-                EmptyStateView(
-                    icon: "tray",
-                    title: "no_transactions",
-                    message: "add_first_transaction"
-                )
+                GlassSurface(padding: 0) {
+                    EmptyStateCard(
+                        icon: "tray",
+                        title: "no_transactions",
+                        message: "add_first_transaction"
+                    )
+                }
             } else {
-                SolidCard {
+                GlassSurface(padding: 0) {
                     VStack(spacing: 0) {
                         ForEach(Array(viewModel.recentTransactions.enumerated()), id: \.element.id) { index, transaction in
                             TransactionRowView(transaction: transaction)
@@ -519,7 +610,7 @@ struct DashboardView: View {
                                 .padding(.vertical, 12)
 
                             if index < viewModel.recentTransactions.count - 1 {
-                                Divider().padding(.leading, 68)
+                                Divider().padding(.leading, 64)
                             }
                         }
                     }

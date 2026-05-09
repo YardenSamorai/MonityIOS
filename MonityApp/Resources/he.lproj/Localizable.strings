@@ -30,8 +30,61 @@
 "biometric_no_credentials" = "אין פרטי התחברות שמורים. התחבר ידנית תחילה.";
 "use_password_instead" = "התחבר עם סיסמה";
 "use_faceid_instead" = "התחבר עם Face ID";
-"welcome_back" = "ברוך הבא";
+"welcome_back" = "ברוך שובך";
 "or" = "או";
+"tap_to_authenticate" = "הקש לאימות";
+"no_account" = "אין לך חשבון?";
+"have_account" = "כבר יש לך חשבון?";
+"back" = "חזרה";
+"invalid_email" = "נא להזין כתובת אימייל תקינה";
+
+/* Dashboard */
+"hero_subtitle" = "סך הכל זמין בכל החשבונות";
+"note" = "הערה";
+"reorder_hint" = "השתמש בחיצים כדי לסדר את הכרטיסים. הסדר ישתקף גם בדשבורד.";
+"limit" = "מסגרת";
+"add_card" = "הוסף כרטיס";
+"card_name" = "שם כרטיס";
+"last_4_digits" = "4 ספרות אחרונות";
+"expenses_by_category_subtitle" = "לאן הולך הכסף שלך";
+"used" = "נוצלו";
+"of" = "מתוך";
+"total" = "סה״כ";
+"today" = "היום";
+"yesterday" = "אתמול";
+"delete_transaction_confirm" = "למחוק את התנועה הזו?";
+
+/* Tab Bar (new) */
+"tab_overview" = "סקירה";
+"tab_activity" = "פעילות";
+"tab_insights" = "תובנות";
+"tab_cards" = "כרטיסים";
+"tab_more" = "עוד";
+
+/* More Menu */
+"more_household_subtitle" = "ניהול הוצאות משותפות עם בן/בת זוג";
+"more_recurring_subtitle" = "תזמון תנועות אוטומטיות";
+"more_budgets_subtitle" = "הגדרת מגבלות חודשיות לקטגוריות";
+"more_settings_subtitle" = "פרופיל, מטבע, שפה";
+
+/* Forgot Password (OTP flow) */
+"forgot_step_email_title" = "איפוס סיסמה";
+"forgot_step_email_subtitle" = "הזן את כתובת האימייל שלך, ונשלח אליך קוד אימות בן 6 ספרות.";
+"forgot_step_code_title" = "הזן קוד אימות";
+"forgot_step_code_subtitle" = "שלחנו קוד בן 6 ספרות לכתובת %@. בדוק בתיבת הדואר (וגם בספאם).";
+"forgot_step_password_title" = "בחר סיסמה חדשה";
+"forgot_step_password_subtitle" = "בחר סיסמה חזקה שאתה זוכר.";
+"forgot_send_code" = "שלח קוד";
+"forgot_verify_code" = "אמת קוד";
+"forgot_resend_code" = "שלח קוד שוב";
+"forgot_invalid_code" = "נא להזין קוד בן 6 ספרות";
+"forgot_rate_limited" = "נא להמתין רגע לפני בקשה נוספת.";
+"forgot_code_resent" = "נשלח קוד חדש.";
+"forgot_success_message" = "כעת ניתן להתחבר עם הסיסמה החדשה.";
+"password_weak" = "חלשה";
+"password_fair" = "סבירה";
+"password_good" = "טובה";
+"password_strong" = "חזקה";
 
 /* Dashboard */
 "dashboard" = "לוח בקרה";
@@ -118,6 +171,8 @@
 "delete_recurring" = "מחיקת תנועה קבועה";
 "delete_recurring_confirm" = "למחוק את התנועה הקבועה?";
 "delete_recurring_message" = "פעולה זו תבטל תנועות אוטומטיות עתידיות.";
+"run_now" = "הרץ עכשיו";
+"recurring_already_generated" = "כבר נוצרה תנועה לתקופה זו.";
 
 /* Charts */
 "charts" = "גרפים";

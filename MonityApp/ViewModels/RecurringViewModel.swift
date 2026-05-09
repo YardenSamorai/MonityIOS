@@ -50,6 +50,7 @@ final class RecurringViewModel: ObservableObject {
             method: "POST",
             body: body
         )
+        DataChangeNotifier.post()
     }
 
     func updateRule(
@@ -86,6 +87,7 @@ final class RecurringViewModel: ObservableObject {
         if let idx = rules.firstIndex(where: { $0.id == id }) {
             rules[idx] = response.recurringRule
         }
+        DataChangeNotifier.post()
     }
 
     func toggleActive(_ rule: RecurringRule) async {
@@ -111,8 +113,32 @@ final class RecurringViewModel: ObservableObject {
                 method: "DELETE"
             )
             rules.removeAll { $0.id == id }
+            DataChangeNotifier.post()
         } catch {
             errorMessage = error.localizedDescription
+        }
+    }
+
+    func runRuleNow(_ id: String) async -> Bool {
+        do {
+            struct RunResponse: Codable {
+                let success: Bool?
+                let generatedDate: String?
+            }
+            let _: RunResponse = try await APIClient.shared.request(
+                endpoint: "/recurring/\(id)/run-now",
+                method: "POST"
+            )
+            DataChangeNotifier.post()
+            await loadRules()
+            return true
+        } catch {
+            if let apiError = error as? APIError, apiError.statusCode == 409 {
+                errorMessage = NSLocalizedString("recurring_already_generated", comment: "")
+            } else {
+                errorMessage = error.localizedDescription
+            }
+            return false
         }
     }
 }

@@ -37,6 +37,7 @@
 		B52B6E217D9CFDA5BA1B445B /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B6E4256F3C34E97BD5A0EB3 /* AuthService.swift */; };
 		B5BE099158C829E4CC239DE3 /* CategoryPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06EE3B655CA53E19209967F3 /* CategoryPickerView.swift */; };
 		BB00000000000001THEME001 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000000000002THEME002 /* Theme.swift */; };
+		BB00000000000003DSGN001 /* DesignComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000000000004DSGN002 /* DesignComponents.swift */; };
 		BD727833285571D09EEA9B34 /* Transaction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53E472E3C151BB45ABC774D6 /* Transaction.swift */; };
 		C8BFF816D2DACE5D2AAB6957 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41AACB0361768B689AB427D5 /* ContentView.swift */; };
 		CC00000000000002REC00002 /* RecurringViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC00000000000001REC00001 /* RecurringViewModel.swift */; };
@@ -134,6 +135,7 @@
 		AA00000000000002LANG0002 /* LanguageManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LanguageManager.swift; sourceTree = "<group>"; };
 		B926F30D29A6787DFBC804F7 /* BudgetViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BudgetViewModel.swift; sourceTree = "<group>"; };
 		BB00000000000002THEME002 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		BB00000000000004DSGN002 /* DesignComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignComponents.swift; sourceTree = "<group>"; };
 		C17B426EB83C6E416DB0E1A7 /* MonityApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MonityApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C2E3F5A6B7D9482E01F5A234 /* BalanceDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BalanceDetailView.swift; sourceTree = "<group>"; };
 		C78DE29FE17419FC83FC0375 /* ChartsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChartsView.swift; sourceTree = "<group>"; };
@@ -205,6 +207,7 @@
 				0E276664F67E137FF8EB414A /* Constants.swift */,
 				AA00000000000002LANG0002 /* LanguageManager.swift */,
 				BB00000000000002THEME002 /* Theme.swift */,
+				BB00000000000004DSGN002 /* DesignComponents.swift */,
 				7C2F24F203634DDF3D8CAB5A /* CurrencyFormatter.swift */,
 				912F28646DD6F6D538EB6C08 /* DateHelper.swift */,
 			);
@@ -535,6 +538,7 @@
 				FF30798542BAD547B4D000AD /* Constants.swift in Sources */,
 				AA00000000000001LANG0001 /* LanguageManager.swift in Sources */,
 				BB00000000000001THEME001 /* Theme.swift in Sources */,
+				BB00000000000003DSGN001 /* DesignComponents.swift in Sources */,
 				3870E9BF545ADED45A491B52 /* CurrencyFormatter.swift in Sources */,
 				E64AA5CD8F4B8F4F0EFF5908 /* DateHelper.swift in Sources */,
 				8D46D7C701E5C7E3811CC8A3 /* AuthViewModel.swift in Sources */,

@@ -9,218 +9,238 @@ struct AddCreditCardView: View {
     @State private var billingDay = 10
     @State private var hasLimit = false
     @State private var limitText = ""
-    @State private var selectedColor = "#6C63FF"
+    @State private var selectedColor = "#0A6B5F"
     @State private var isSubmitting = false
     @State private var errorMessage: String?
 
     var onSave: (() -> Void)?
 
     private let cardColors = [
-        "#6C63FF", "#E17055", "#00B894", "#0984E3",
-        "#D63031", "#E84393", "#FDCB6E", "#2D3436",
+        "#0A6B5F", "#044238", "#1A8F73", "#C8924A",
+        "#4A88C8", "#C84A4A", "#E84393", "#2D3436",
     ]
 
     var body: some View {
         NavigationStack {
-            ScrollView(showsIndicators: false) {
-                VStack(spacing: 24) {
-                    cardPreview
+            ZStack {
+                CanvasBackground()
 
-                    SolidCard {
-                        VStack(spacing: 0) {
-                            fieldRow(icon: "creditcard") {
-                                TextField("card_name_placeholder", text: $name)
-                                    .font(.subheadline)
-                            }
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: 18) {
+                        cardPreview
 
-                            Divider().padding(.leading, 52)
+                        formCard
 
-                            fieldRow(icon: "number") {
-                                TextField("last_four_digits", text: $lastFourDigits)
-                                    .font(.subheadline)
-                                    .keyboardType(.numberPad)
-                                    .onChange(of: lastFourDigits) { _, newVal in
-                                        if newVal.count > 4 {
-                                            lastFourDigits = String(newVal.prefix(4))
-                                        }
-                                    }
-                            }
+                        colorPickerSection
 
-                            Divider().padding(.leading, 52)
+                        if let error = errorMessage {
+                            errorBanner(error)
+                        }
 
-                            fieldRow(icon: "calendar.badge.clock") {
-                                HStack {
-                                    Text("billing_day")
-                                        .font(.subheadline)
-                                    Spacer()
-                                    Picker("", selection: $billingDay) {
-                                        ForEach(1...28, id: \.self) { day in
-                                            Text("\(day)").tag(day)
-                                        }
-                                    }
-                                    .pickerStyle(.menu)
-                                    .tint(.secondary)
-                                }
-                            }
-
-                            Divider().padding(.leading, 52)
-
-                            fieldRow(icon: "gauge.with.dots.needle.33percent") {
-                                Toggle("credit_limit", isOn: $hasLimit.animation(.spring(response: 0.3)))
-                                    .font(.subheadline)
-                                    .tint(AppTheme.accent)
-                            }
-
-                            if hasLimit {
-                                Divider().padding(.leading, 52)
-                                fieldRow(icon: "sheqelsign") {
-                                    TextField("limit_amount", text: $limitText)
-                                        .font(.subheadline)
-                                        .keyboardType(.decimalPad)
-                                }
-                                .transition(.move(edge: .top).combined(with: .opacity))
-                            }
+                        PrimaryButton(
+                            title: "save",
+                            icon: "checkmark",
+                            isLoading: isSubmitting,
+                            isDisabled: name.isEmpty
+                        ) {
+                            Task { await save() }
                         }
                     }
-
-                    colorPicker
-
-                    if let error = errorMessage {
-                        HStack(spacing: 6) {
-                            Image(systemName: "exclamationmark.triangle.fill").font(.caption)
-                            Text(error).font(.caption)
-                        }
-                        .foregroundStyle(.red)
-                        .transition(.opacity)
-                    }
-
-                    Button {
-                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                        Task { await save() }
-                    } label: {
-                        ZStack {
-                            if isSubmitting {
-                                ProgressView().tint(.white)
-                            } else {
-                                Text("save")
-                                    .font(.headline)
-                            }
-                        }
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 54)
-                        .background(name.isEmpty ? AnyShapeStyle(Color.gray.opacity(0.3)) : AnyShapeStyle(AppTheme.primaryGradient))
-                        .foregroundStyle(.white)
-                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                        .shadow(color: name.isEmpty ? .clear : AppTheme.accent.opacity(0.3), radius: 12, y: 6)
-                    }
-                    .disabled(isSubmitting || name.isEmpty)
+                    .padding(.horizontal, Spacing.screenHorizontal)
+                    .padding(.top, 8)
+                    .padding(.bottom, 32)
                 }
-                .padding(20)
-                .padding(.bottom, 20)
             }
-            .background(Color(.systemGroupedBackground))
             .navigationTitle("add_credit_card")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button { dismiss() } label: {
-                        Image(systemName: "xmark")
-                            .font(.body.weight(.medium))
-                            .foregroundStyle(.secondary)
-                            .frame(width: 30, height: 30)
-                            .background(Color(.systemGray5))
-                            .clipShape(Circle())
-                    }
+                    GlassIconButton(icon: "xmark", size: 32) { dismiss() }
                 }
             }
         }
     }
 
     private var cardPreview: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        let color = Color(hex: selectedColor)
+        return VStack(alignment: .leading, spacing: 0) {
             HStack {
                 Text(name.isEmpty ? L("card_name_placeholder") : name)
-                    .font(.headline.weight(.bold))
+                    .font(.system(size: 18, weight: .bold, design: .rounded))
                     .foregroundStyle(.white)
                 Spacer()
                 Image(systemName: "creditcard.fill")
                     .font(.title3)
-                    .foregroundStyle(.white.opacity(0.5))
+                    .foregroundStyle(.white.opacity(0.65))
             }
 
             Spacer()
 
-            Text(lastFourDigits.isEmpty ? "••••" : "•••• \(lastFourDigits)")
-                .font(.subheadline.weight(.medium).monospacedDigit())
-                .foregroundStyle(.white.opacity(0.8))
+            Text(lastFourDigits.isEmpty ? "• • • •" : "• • • •  \(lastFourDigits)")
+                .font(.system(size: 14, weight: .semibold).monospacedDigit())
+                .foregroundStyle(.white.opacity(0.9))
+                .tracking(2)
 
-            HStack {
-                Text("billing_day_label")
-                    .font(.caption2)
-                    .foregroundStyle(.white.opacity(0.6))
-                Text("\(billingDay)")
-                    .font(.caption.weight(.bold).monospacedDigit())
-                    .foregroundStyle(.white)
+            HStack(alignment: .bottom) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("billing_day_label")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(.white.opacity(0.75))
+                        .textCase(.uppercase)
+                        .tracking(0.5)
+                    Text("\(billingDay)")
+                        .font(.system(size: 18, weight: .bold, design: .rounded))
+                        .foregroundStyle(.white)
+                }
+                Spacer()
             }
+            .padding(.top, 8)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .frame(height: 180)
-        .padding(24)
+        .frame(height: 170)
+        .padding(22)
         .background(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(LinearGradient(
-                    colors: [Color(hex: selectedColor), Color(hex: selectedColor).opacity(0.7)],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                ))
-                .shadow(color: Color(hex: selectedColor).opacity(0.4), radius: 16, y: 8)
+            ZStack {
+                RoundedRectangle(cornerRadius: 22, style: .continuous)
+                    .fill(LinearGradient(
+                        colors: [color, color.opacity(0.65)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ))
+                RoundedRectangle(cornerRadius: 22, style: .continuous)
+                    .stroke(LinearGradient(colors: [.white.opacity(0.45), .white.opacity(0.05)], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1)
+                    .blendMode(.plusLighter)
+            }
         )
-        .animation(.easeInOut(duration: 0.3), value: selectedColor)
+        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .shadow(color: color.opacity(0.4), radius: 18, y: 10)
+        .animation(Motion.smooth, value: selectedColor)
     }
 
-    private var colorPicker: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("card_color")
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.secondary)
-                .padding(.leading, 4)
-
-            HStack(spacing: 12) {
-                ForEach(cardColors, id: \.self) { hex in
-                    Button {
-                        withAnimation(.spring(response: 0.3)) { selectedColor = hex }
-                    } label: {
-                        Circle()
-                            .fill(Color(hex: hex))
-                            .frame(width: 36, height: 36)
-                            .overlay(
-                                Circle()
-                                    .stroke(.white, lineWidth: selectedColor == hex ? 3 : 0)
-                                    .padding(2)
-                            )
-                            .overlay(
-                                Circle()
-                                    .stroke(Color(hex: hex).opacity(0.5), lineWidth: selectedColor == hex ? 2 : 0)
-                            )
-                            .scaleEffect(selectedColor == hex ? 1.15 : 1)
+    private var formCard: some View {
+        GlassSurface(padding: 0) {
+            VStack(spacing: 0) {
+                fieldRow(icon: "creditcard", label: "card_name") {
+                    TextField(L("card_name_placeholder"), text: $name)
+                        .font(AppFont.body)
+                }
+                Divider().padding(.leading, 52)
+                fieldRow(icon: "number", label: "last_4_digits") {
+                    TextField(L("last_four_digits"), text: $lastFourDigits)
+                        .font(AppFont.body.monospacedDigit())
+                        .keyboardType(.numberPad)
+                        .onChange(of: lastFourDigits) { _, newVal in
+                            if newVal.count > 4 { lastFourDigits = String(newVal.prefix(4)) }
+                        }
+                }
+                Divider().padding(.leading, 52)
+                fieldRow(icon: "calendar.badge.clock", label: "billing_day") {
+                    Picker("", selection: $billingDay) {
+                        ForEach(1...28, id: \.self) { Text("\($0)").tag($0) }
                     }
+                    .pickerStyle(.menu)
+                    .tint(.secondary)
+                }
+                Divider().padding(.leading, 52)
+                fieldRow(icon: "gauge.with.dots.needle.33percent", label: "credit_limit") {
+                    Toggle("", isOn: $hasLimit.animation(Motion.snappy))
+                        .labelsHidden()
+                        .tint(BrandColor.primary)
+                }
+                if hasLimit {
+                    Divider().padding(.leading, 52)
+                    fieldRow(icon: "sheqelsign", label: "limit_amount") {
+                        TextField(L("limit_amount"), text: $limitText)
+                            .font(AppFont.body)
+                            .keyboardType(.decimalPad)
+                    }
+                    .transition(.opacity.combined(with: .move(edge: .top)))
                 }
             }
-            .frame(maxWidth: .infinity)
         }
     }
 
-    private func fieldRow<Content: View>(icon: String, @ViewBuilder content: () -> Content) -> some View {
+    private var colorPickerSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("card_color")
+                .font(AppFont.label)
+                .foregroundStyle(.secondary)
+                .textCase(.uppercase)
+                .tracking(0.5)
+                .padding(.leading, 4)
+
+            GlassSurface(padding: 16) {
+                HStack(spacing: 10) {
+                    ForEach(cardColors, id: \.self) { hex in
+                        let isSelected = selectedColor == hex
+                        Button {
+                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            withAnimation(Motion.snappy) { selectedColor = hex }
+                        } label: {
+                            ZStack {
+                                Circle().fill(Color(hex: hex))
+                                if isSelected {
+                                    Image(systemName: "checkmark")
+                                        .font(.system(size: 14, weight: .black))
+                                        .foregroundStyle(.white)
+                                }
+                            }
+                            .frame(width: 34, height: 34)
+                            .overlay(
+                                Circle()
+                                    .strokeBorder(Color.white, lineWidth: isSelected ? 2 : 0)
+                                    .padding(-3)
+                            )
+                            .overlay(
+                                Circle()
+                                    .strokeBorder(Color(hex: hex).opacity(isSelected ? 0.6 : 0), lineWidth: 2)
+                                    .padding(-5)
+                            )
+                            .scaleEffect(isSelected ? 1.1 : 1)
+                        }
+                    }
+                }
+                .frame(maxWidth: .infinity)
+            }
+        }
+    }
+
+    private func fieldRow<Content: View>(icon: String, label: LocalizedStringKey, @ViewBuilder content: () -> Content) -> some View {
         HStack(spacing: 14) {
-            Image(systemName: icon)
-                .font(.body.weight(.medium))
-                .foregroundStyle(AppTheme.accent)
-                .frame(width: 24)
-            content()
-            Spacer()
+            ZStack {
+                RoundedRectangle(cornerRadius: 9, style: .continuous)
+                    .fill(BrandColor.primary.opacity(0.12))
+                Image(systemName: icon)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(BrandColor.primary)
+            }
+            .frame(width: 30, height: 30)
+
+            VStack(alignment: .leading, spacing: 0) {
+                Text(label)
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                    .textCase(.uppercase)
+                    .tracking(0.4)
+                content()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            Spacer(minLength: 0)
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 14)
+        .padding(.vertical, 12)
+    }
+
+    private func errorBanner(_ message: String) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.subheadline.weight(.bold))
+            Text(message).font(AppFont.caption)
+            Spacer()
+        }
+        .foregroundStyle(BrandColor.expense)
+        .padding(12)
+        .background(BrandColor.expense.opacity(0.1))
+        .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
     }
 
     private func save() async {
@@ -228,19 +248,13 @@ struct AddCreditCardView: View {
             errorMessage = L("fill_all_fields")
             return
         }
-
         isSubmitting = true
         errorMessage = nil
-
         let limit = hasLimit ? Double(limitText) : nil
-
         do {
             try await viewModel.createCard(
-                name: name,
-                lastFourDigits: lastFourDigits,
-                billingDay: billingDay,
-                creditLimit: limit,
-                color: selectedColor
+                name: name, lastFourDigits: lastFourDigits,
+                billingDay: billingDay, creditLimit: limit, color: selectedColor
             )
             UINotificationFeedbackGenerator().notificationOccurred(.success)
             onSave?()
@@ -249,7 +263,6 @@ struct AddCreditCardView: View {
             UINotificationFeedbackGenerator().notificationOccurred(.error)
             errorMessage = error.localizedDescription
         }
-
         isSubmitting = false
     }
 }

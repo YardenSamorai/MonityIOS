@@ -2,39 +2,43 @@ import SwiftUI
 
 struct LoadingView: View {
     @State private var rotation: Double = 0
-    @State private var scale: CGFloat = 0.8
 
     var body: some View {
-        VStack(spacing: 24) {
-            ZStack {
-                Circle()
-                    .stroke(AppTheme.accent.opacity(0.15), lineWidth: 4)
-                    .frame(width: 56, height: 56)
+        ZStack {
+            CanvasBackground()
 
-                Circle()
-                    .trim(from: 0, to: 0.7)
-                    .stroke(AppTheme.primaryGradient, style: StrokeStyle(lineWidth: 4, lineCap: .round))
-                    .frame(width: 56, height: 56)
-                    .rotationEffect(.degrees(rotation))
+            VStack(spacing: 20) {
+                ZStack {
+                    Circle()
+                        .stroke(BrandColor.primary.opacity(0.12), lineWidth: 3)
+                        .frame(width: 60, height: 60)
+                    Circle()
+                        .trim(from: 0, to: 0.7)
+                        .stroke(
+                            LinearGradient(
+                                colors: [BrandColor.primary, BrandColor.primaryDeep],
+                                startPoint: .topLeading, endPoint: .bottomTrailing
+                            ),
+                            style: StrokeStyle(lineWidth: 3, lineCap: .round)
+                        )
+                        .frame(width: 60, height: 60)
+                        .rotationEffect(.degrees(rotation))
 
-                Image(systemName: "chart.line.uptrend.xyaxis")
-                    .font(.title3.weight(.semibold))
-                    .foregroundStyle(AppTheme.accent)
+                    Image(systemName: "chart.line.uptrend.xyaxis")
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundStyle(BrandColor.primary)
+                }
+
+                Text("loading")
+                    .font(AppFont.label)
+                    .foregroundStyle(.secondary)
+                    .textCase(.uppercase)
+                    .tracking(0.5)
             }
-            .scaleEffect(scale)
-
-            Text("loading")
-                .font(.subheadline.weight(.medium))
-                .foregroundStyle(.secondary)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(.systemBackground))
         .onAppear {
             withAnimation(.linear(duration: 1).repeatForever(autoreverses: false)) {
                 rotation = 360
-            }
-            withAnimation(.easeInOut(duration: 1.2).repeatForever()) {
-                scale = 1.0
             }
         }
     }

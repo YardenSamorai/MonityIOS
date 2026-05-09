@@ -15,3 +15,13 @@ enum Constants {
         static let expense = "ExpenseRed"
     }
 }
+
+extension Notification.Name {
+    static let dataDidChange = Notification.Name("monity.dataDidChange")
+}
+
+enum DataChangeNotifier {
+    static func post() {
+        NotificationCenter.default.post(name: .dataDidChange, object: nil)
+    }
+}

@@ -66,10 +66,7 @@ router.get('/status', async (req, res) => {
             categoryId: budget.categoryId,
             type: 'expense',
             date: { [Op.between]: [from, to] },
-            [Op.or]: [
-              { creditCardId: null },
-              { isBilled: true },
-            ],
+            isBillingCharge: false,
           },
         }) || 0;
 

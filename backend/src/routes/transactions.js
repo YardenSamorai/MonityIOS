@@ -65,6 +65,11 @@ router.get('/', async (req, res) => {
 
 router.get('/summary', async (req, res) => {
   try {
+    try {
+      const { processRecurringRules } = require('../services/recurringService');
+      processRecurringRules().catch(() => {});
+    } catch (_) {}
+
     const { from, to } = req.query;
     const where = { userId: req.userId };
     if (from || to) {
@@ -75,17 +80,19 @@ router.get('/summary', async (req, res) => {
 
     const bankWhere = {
       ...where,
-      [Op.or]: [
-        { creditCardId: null },
-        { isBilled: true },
-      ],
+      creditCardId: null,
+    };
+
+    const categoryWhere = {
+      ...where,
+      isBillingCharge: false,
     };
 
     const income = await Transaction.sum('amount', { where: { ...bankWhere, type: 'income' } }) || 0;
     const expense = await Transaction.sum('amount', { where: { ...bankWhere, type: 'expense' } }) || 0;
 
     const byCategory = await Transaction.findAll({
-      where: { ...bankWhere, type: 'expense' },
+      where: { ...categoryWhere, type: 'expense' },
       attributes: [
         'categoryId',
         [sequelize.fn('SUM', sequelize.col('amount')), 'total'],

@@ -5,53 +5,49 @@ struct BudgetListView: View {
     @State private var showAddBudget = false
 
     var body: some View {
-        NavigationStack {
-            Group {
-                if viewModel.budgetStatuses.isEmpty && !viewModel.isLoading {
-                    EmptyStateView(
-                        icon: "chart.bar.doc.horizontal",
-                        title: "no_budgets",
-                        message: "add_first_budget"
-                    )
-                } else {
-                    List {
+        ZStack {
+            CanvasBackground()
+
+            if viewModel.budgetStatuses.isEmpty && !viewModel.isLoading {
+                EmptyStateCard(
+                    icon: "chart.bar.doc.horizontal",
+                    title: "no_budgets",
+                    message: "add_first_budget",
+                    actionTitle: "add_budget",
+                    action: { showAddBudget = true }
+                )
+            } else {
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: 10) {
                         ForEach(viewModel.budgetStatuses) { budget in
                             BudgetProgressView(budget: budget)
-                                .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
-                                .listRowSeparator(.hidden)
-                                .listRowBackground(Color.clear)
-                        }
-                        .onDelete { indexSet in
-                            for index in indexSet {
-                                let b = viewModel.budgetStatuses[index]
-                                Task { await viewModel.deleteBudget(b.id) }
-                            }
+                                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                    Button(role: .destructive) {
+                                        Task { await viewModel.deleteBudget(budget.id) }
+                                    } label: {
+                                        Label("delete", systemImage: "trash")
+                                    }
+                                }
                         }
                     }
-                    .listStyle(.plain)
+                    .padding(.horizontal, Spacing.screenHorizontal)
+                    .padding(.top, 8)
+                    .padding(.bottom, 110)
                 }
-            }
-            .navigationTitle("budgets")
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button {
-                        showAddBudget = true
-                    } label: {
-                        Image(systemName: "plus.circle.fill")
-                    }
-                }
-            }
-            .sheet(isPresented: $showAddBudget) {
-                AddBudgetView(categories: viewModel.categoriesWithoutBudget) {
-                    Task { await viewModel.loadBudgets() }
-                }
-            }
-            .refreshable {
-                await viewModel.loadBudgets()
-            }
-            .task {
-                await viewModel.loadBudgets()
+                .refreshable { await viewModel.loadBudgets() }
             }
         }
+        .navigationTitle("budgets")
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                FloatingPlusButton { showAddBudget = true }
+            }
+        }
+        .sheet(isPresented: $showAddBudget) {
+            AddBudgetView(categories: viewModel.categoriesWithoutBudget) {
+                Task { await viewModel.loadBudgets() }
+            }
+        }
+        .task { await viewModel.loadBudgets() }
     }
 }

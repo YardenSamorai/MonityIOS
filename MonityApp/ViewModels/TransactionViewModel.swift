@@ -72,6 +72,7 @@ final class TransactionViewModel: ObservableObject {
                 method: "DELETE"
             )
             transactions.removeAll { $0.id == id }
+            DataChangeNotifier.post()
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -114,6 +115,7 @@ final class TransactionViewModel: ObservableObject {
             method: "POST",
             body: body
         )
+        DataChangeNotifier.post()
     }
 
     func updateTransaction(
@@ -144,5 +146,6 @@ final class TransactionViewModel: ObservableObject {
         if let idx = transactions.firstIndex(where: { $0.id == id }) {
             transactions[idx] = response.transaction
         }
+        DataChangeNotifier.post()
     }
 }

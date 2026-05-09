@@ -8,6 +8,12 @@ router.use(authMiddleware);
 
 router.get('/', async (req, res) => {
   try {
+    try {
+      await processRecurringRules();
+    } catch (err) {
+      console.warn('processRecurringRules during /recurring GET failed:', err.message);
+    }
+
     const rules = await RecurringRule.findAll({
       where: { userId: req.userId },
       include: [{ model: Category, attributes: ['id', 'name', 'nameHe', 'icon', 'color'] }],
@@ -94,6 +100,77 @@ router.put('/:id', async (req, res) => {
   } catch (err) {
     console.error('Update recurring error:', err);
     res.status(500).json({ error: 'Failed to update recurring rule' });
+  }
+});
+
+router.post('/:id/run-now', async (req, res) => {
+  try {
+    const rule = await RecurringRule.findOne({
+      where: { id: req.params.id, userId: req.userId },
+    });
+    if (!rule) return res.status(404).json({ error: 'Recurring rule not found' });
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const y = today.getFullYear();
+    const m = String(today.getMonth() + 1).padStart(2, '0');
+    const d = String(today.getDate()).padStart(2, '0');
+    const todayStr = `${y}-${m}-${d}`;
+
+    const { Transaction } = require('../models');
+    const sequelize = require('../config/database');
+
+    let monthFrom, monthTo;
+    if (rule.frequency === 'monthly') {
+      monthFrom = `${y}-${m}-01`;
+      const lastDay = new Date(y, today.getMonth() + 1, 0).getDate();
+      monthTo = `${y}-${m}-${String(lastDay).padStart(2, '0')}`;
+    } else {
+      monthFrom = todayStr;
+      monthTo = todayStr;
+    }
+
+    const existing = await Transaction.findOne({
+      where: {
+        recurringRuleId: rule.id,
+        date: { [require('sequelize').Op.between]: [monthFrom, monthTo] },
+      },
+    });
+
+    if (existing) {
+      return res.status(409).json({ error: 'Transaction already exists for this period' });
+    }
+
+    let occurrenceDate = todayStr;
+    if (rule.frequency === 'monthly') {
+      const startParts = rule.startDate.split('-').map(Number);
+      const lastDay = new Date(y, today.getMonth() + 1, 0).getDate();
+      const day = Math.min(startParts[2], lastDay);
+      occurrenceDate = `${y}-${m}-${String(day).padStart(2, '0')}`;
+    }
+
+    await sequelize.transaction(async (t) => {
+      await Transaction.create({
+        amount: rule.amount,
+        currency: rule.currency,
+        type: rule.type,
+        note: rule.note,
+        date: occurrenceDate,
+        categoryId: rule.categoryId,
+        userId: rule.userId,
+        recurringRuleId: rule.id,
+      }, { transaction: t });
+
+      if (!rule.lastGenerated || rule.lastGenerated < occurrenceDate) {
+        rule.lastGenerated = occurrenceDate;
+        await rule.save({ transaction: t });
+      }
+    });
+
+    res.json({ success: true, generatedDate: occurrenceDate });
+  } catch (err) {
+    console.error('Run recurring rule error:', err);
+    res.status(500).json({ error: 'Failed to run recurring rule' });
   }
 });
 

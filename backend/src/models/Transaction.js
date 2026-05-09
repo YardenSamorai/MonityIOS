@@ -32,6 +32,10 @@ const Transaction = sequelize.define('Transaction', {
     type: DataTypes.BOOLEAN,
     defaultValue: false,
   },
+  isBillingCharge: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
   installmentNumber: {
     type: DataTypes.INTEGER,
     allowNull: true,

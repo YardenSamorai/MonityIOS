@@ -7,108 +7,113 @@ struct RecurringListView: View {
     @State private var ruleToDelete: RecurringRule?
 
     var body: some View {
-        NavigationStack {
-            Group {
-                if viewModel.rules.isEmpty && !viewModel.isLoading {
-                    EmptyStateView(
-                        icon: "arrow.triangle.2.circlepath",
-                        title: "no_recurring",
-                        message: "add_first_recurring"
-                    )
-                } else {
-                    List {
+        ZStack {
+            CanvasBackground()
+
+            if viewModel.rules.isEmpty && !viewModel.isLoading {
+                EmptyStateCard(
+                    icon: "arrow.triangle.2.circlepath",
+                    title: "no_recurring",
+                    message: "add_first_recurring",
+                    actionTitle: "add_recurring",
+                    action: { showAddRecurring = true }
+                )
+            } else {
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: 12) {
                         ForEach(viewModel.rules) { rule in
-                            RecurringRuleCard(rule: rule) {
-                                Task { await viewModel.toggleActive(rule) }
-                            }
-                            .listRowInsets(EdgeInsets(top: 6, leading: 20, bottom: 6, trailing: 20))
-                            .listRowSeparator(.hidden)
-                            .listRowBackground(Color.clear)
-                            .contentShape(Rectangle())
-                            .onTapGesture {
-                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            Button {
                                 editingRule = rule
+                            } label: {
+                                RecurringRuleCard(rule: rule) {
+                                    Task { await viewModel.toggleActive(rule) }
+                                }
                             }
+                            .buttonStyle(.plain)
                             .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                 Button(role: .destructive) {
-                                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                                     ruleToDelete = rule
                                 } label: {
                                     Label("delete", systemImage: "trash")
                                 }
                             }
-                            .swipeActions(edge: .leading, allowsFullSwipe: true) {
+                            .swipeActions(edge: .leading, allowsFullSwipe: false) {
                                 Button {
-                                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
                                     editingRule = rule
                                 } label: {
                                     Label("edit", systemImage: "pencil")
                                 }
-                                .tint(AppTheme.accent)
+                                .tint(BrandColor.primary)
+
+                                Button {
+                                    Task {
+                                        let ok = await viewModel.runRuleNow(rule.id)
+                                        if ok { UINotificationFeedbackGenerator().notificationOccurred(.success) }
+                                    }
+                                } label: {
+                                    Label("run_now", systemImage: "play.fill")
+                                }
+                                .tint(BrandColor.income)
+                            }
+                            .contextMenu {
+                                Button {
+                                    Task {
+                                        let ok = await viewModel.runRuleNow(rule.id)
+                                        if ok { UINotificationFeedbackGenerator().notificationOccurred(.success) }
+                                    }
+                                } label: { Label("run_now", systemImage: "play.fill") }
+                                Button { editingRule = rule } label: { Label("edit", systemImage: "pencil") }
+                                Button(role: .destructive) { ruleToDelete = rule } label: { Label("delete", systemImage: "trash") }
                             }
                         }
                     }
-                    .listStyle(.plain)
-                    .scrollContentBackground(.hidden)
+                    .padding(.horizontal, Spacing.screenHorizontal)
+                    .padding(.top, 8)
+                    .padding(.bottom, 110)
                 }
+                .refreshable { await viewModel.loadRules() }
             }
-            .background(Color(.systemGroupedBackground))
-            .navigationTitle("recurring_transactions")
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button {
-                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                        showAddRecurring = true
-                    } label: {
-                        Image(systemName: "plus")
-                            .font(.body.weight(.semibold))
-                            .foregroundStyle(.white)
-                            .frame(width: 34, height: 34)
-                            .background(AppTheme.primaryGradient)
-                            .clipShape(Circle())
-                    }
-                }
-            }
-            .confirmationDialog(L("delete_recurring_confirm"), isPresented: .init(
-                get: { ruleToDelete != nil },
-                set: { if !$0 { ruleToDelete = nil } }
-            ), titleVisibility: .visible) {
-                Button(L("delete"), role: .destructive) {
-                    guard let rule = ruleToDelete else { return }
-                    Task {
-                        await viewModel.deleteRule(rule.id)
-                        if viewModel.errorMessage != nil {
-                            UINotificationFeedbackGenerator().notificationOccurred(.error)
-                        } else {
-                            UINotificationFeedbackGenerator().notificationOccurred(.success)
-                        }
-                        ruleToDelete = nil
-                    }
-                }
-            } message: {
-                Text("delete_recurring_message")
-            }
-            .alert(L("error"), isPresented: .init(
-                get: { viewModel.errorMessage != nil },
-                set: { if !$0 { viewModel.errorMessage = nil } }
-            )) {
-                Button(L("ok")) { viewModel.errorMessage = nil }
-            } message: {
-                Text(viewModel.errorMessage ?? "")
-            }
-            .sheet(isPresented: $showAddRecurring) {
-                AddRecurringView {
-                    Task { await viewModel.loadRules() }
-                }
-            }
-            .sheet(item: $editingRule) { rule in
-                AddRecurringView(editingRule: rule) {
-                    Task { await viewModel.loadRules() }
-                }
-            }
-            .refreshable { await viewModel.loadRules() }
-            .task { await viewModel.loadRules() }
         }
+        .navigationTitle("recurring_transactions")
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                FloatingPlusButton { showAddRecurring = true }
+            }
+        }
+        .confirmationDialog(L("delete_recurring_confirm"), isPresented: .init(
+            get: { ruleToDelete != nil },
+            set: { if !$0 { ruleToDelete = nil } }
+        ), titleVisibility: .visible) {
+            Button(L("delete"), role: .destructive) {
+                guard let rule = ruleToDelete else { return }
+                Task {
+                    await viewModel.deleteRule(rule.id)
+                    if viewModel.errorMessage != nil {
+                        UINotificationFeedbackGenerator().notificationOccurred(.error)
+                    } else {
+                        UINotificationFeedbackGenerator().notificationOccurred(.success)
+                    }
+                    ruleToDelete = nil
+                }
+            }
+        } message: {
+            Text("delete_recurring_message")
+        }
+        .alert(L("error"), isPresented: .init(
+            get: { viewModel.errorMessage != nil },
+            set: { if !$0 { viewModel.errorMessage = nil } }
+        )) {
+            Button(L("ok")) { viewModel.errorMessage = nil }
+        } message: {
+            Text(viewModel.errorMessage ?? "")
+        }
+        .sheet(isPresented: $showAddRecurring) {
+            AddRecurringView { Task { await viewModel.loadRules() } }
+        }
+        .sheet(item: $editingRule) { rule in
+            AddRecurringView(editingRule: rule) { Task { await viewModel.loadRules() } }
+        }
+        .task { await viewModel.loadRules() }
     }
 }
 
@@ -117,22 +122,24 @@ struct RecurringRuleCard: View {
     var onToggle: () -> Void
 
     var body: some View {
-        SolidCard {
+        GlassSurface(padding: 0) {
             VStack(spacing: 0) {
                 HStack(spacing: 14) {
-                    Text(rule.category?.icon ?? "💰")
-                        .font(.title2)
-                        .frame(width: 46, height: 46)
-                        .background(categoryColor.opacity(0.12))
-                        .clipShape(RoundedRectangle(cornerRadius: 13, style: .continuous))
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .fill(categoryColor.opacity(0.13))
+                        Text(rule.category?.icon ?? "💰")
+                            .font(.system(size: 20))
+                    }
+                    .frame(width: 44, height: 44)
 
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: 3) {
                         Text(rule.category?.localizedName ?? L("uncategorized"))
-                            .font(.subheadline.weight(.semibold))
+                            .font(AppFont.titleS)
 
                         if !rule.note.isEmpty {
                             Text(rule.note)
-                                .font(.caption)
+                                .font(AppFont.caption)
                                 .foregroundStyle(.secondary)
                                 .lineLimit(1)
                         }
@@ -142,14 +149,13 @@ struct RecurringRuleCard: View {
 
                     VStack(alignment: .trailing, spacing: 4) {
                         Text(formattedAmount)
-                            .font(.subheadline.weight(.bold).monospacedDigit())
-                            .foregroundStyle(rule.type == .income ? AppTheme.income : AppTheme.expense)
-
+                            .font(AppFont.amount)
+                            .foregroundStyle(rule.type == .income ? BrandColor.income : BrandColor.expense)
                         Text(LocalizedStringKey(rule.frequency.rawValue))
-                            .font(.caption2.weight(.medium))
+                            .font(.system(size: 10, weight: .bold))
                             .foregroundStyle(.white)
                             .padding(.horizontal, 8)
-                            .padding(.vertical, 2)
+                            .padding(.vertical, 3)
                             .background(frequencyColor)
                             .clipShape(Capsule())
                     }
@@ -159,13 +165,13 @@ struct RecurringRuleCard: View {
                 Divider()
 
                 HStack {
-                    HStack(spacing: 4) {
+                    HStack(spacing: 5) {
                         Image(systemName: "clock.arrow.circlepath")
-                            .font(.caption2)
+                            .font(.system(size: 11, weight: .semibold))
                         Text(nextExecutionText)
-                            .font(.caption2.weight(.medium))
+                            .font(AppFont.caption)
                     }
-                    .foregroundStyle(AppTheme.accent)
+                    .foregroundStyle(BrandColor.primary)
 
                     Spacer()
 
@@ -173,17 +179,17 @@ struct RecurringRuleCard: View {
                         UIImpactFeedbackGenerator(style: .light).impactOccurred()
                         onToggle()
                     } label: {
-                        HStack(spacing: 4) {
+                        HStack(spacing: 5) {
                             Circle()
-                                .fill(rule.isActive ? AppTheme.income : Color.gray)
-                                .frame(width: 8, height: 8)
+                                .fill(rule.isActive ? BrandColor.income : Color.gray)
+                                .frame(width: 7, height: 7)
                             Text(rule.isActive ? "active" : "paused")
-                                .font(.caption2.weight(.semibold))
-                                .foregroundStyle(rule.isActive ? AppTheme.income : .gray)
+                                .font(.system(size: 11, weight: .bold))
                         }
+                        .foregroundStyle(rule.isActive ? BrandColor.income : .gray)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 5)
-                        .background(rule.isActive ? AppTheme.income.opacity(0.1) : Color.gray.opacity(0.1))
+                        .background(rule.isActive ? BrandColor.income.opacity(0.12) : Color.gray.opacity(0.1))
                         .clipShape(Capsule())
                     }
                 }
@@ -191,16 +197,16 @@ struct RecurringRuleCard: View {
                 .padding(.vertical, 10)
             }
         }
-        .opacity(rule.isActive ? 1 : 0.65)
+        .opacity(rule.isActive ? 1 : 0.6)
     }
 
     private var formattedAmount: String {
-        let prefix = rule.type == .income ? "+" : "-"
+        let prefix = rule.type == .income ? "+" : "−"
         return prefix + CurrencyHelper.format(rule.amount, currency: rule.currency)
     }
 
     private var categoryColor: Color {
-        guard let hex = rule.category?.color else { return AppTheme.accent }
+        guard let hex = rule.category?.color else { return BrandColor.primary }
         return Color(hex: hex)
     }
 
@@ -251,10 +257,10 @@ struct RecurringRuleCard: View {
 
     private var frequencyColor: Color {
         switch rule.frequency {
-        case .daily: return .orange
-        case .weekly: return AppTheme.accent
-        case .monthly: return AppTheme.income
-        case .yearly: return .purple
+        case .daily:   return BrandColor.warning
+        case .weekly:  return BrandColor.info
+        case .monthly: return BrandColor.income
+        case .yearly:  return BrandColor.primary
         }
     }
 }

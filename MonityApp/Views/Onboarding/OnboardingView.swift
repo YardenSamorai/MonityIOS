@@ -12,7 +12,7 @@ struct OnboardingView: View {
 
     var body: some View {
         ZStack {
-            Color(.systemBackground).ignoresSafeArea()
+            CanvasBackground()
 
             VStack(spacing: 0) {
                 if step > 0 && step < totalSteps - 1 {
@@ -51,8 +51,9 @@ struct OnboardingView: View {
         HStack(spacing: 6) {
             ForEach(1..<totalSteps, id: \.self) { i in
                 Capsule()
-                    .fill(i <= step ? AppTheme.accent : Color(.systemGray4))
+                    .fill(i <= step ? BrandColor.primary : Color.secondary.opacity(0.18))
                     .frame(height: 4)
+                    .animation(.spring(response: 0.4, dampingFraction: 0.85), value: step)
             }
         }
         .padding(.horizontal, 40)
@@ -751,34 +752,38 @@ struct OnboardingRecurringItem: Identifiable {
 struct OnboardingButton: View {
     let title: String
     var icon: String = "arrow.forward"
-    var gradient: LinearGradient = AppTheme.primaryGradient
-    var shadowColor: Color = AppTheme.accent
+    var gradient: LinearGradient = LinearGradient(
+        colors: [BrandColor.primaryDeep, BrandColor.primary],
+        startPoint: .topLeading, endPoint: .bottomTrailing
+    )
+    var shadowColor: Color = BrandColor.primary
     let action: () -> Void
     @State private var isPressed = false
 
     var body: some View {
         Button {
+            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
             action()
         } label: {
             HStack(spacing: 10) {
                 Text(title)
-                    .font(.headline)
+                    .font(.headline.weight(.bold))
                 Image(systemName: icon)
                     .font(.body.weight(.bold))
                     .flipsForRightToLeftLayoutDirection(true)
             }
             .frame(maxWidth: .infinity)
-            .frame(height: 58)
+            .frame(height: 56)
             .background(gradient)
             .foregroundStyle(.white)
-            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-            .shadow(color: shadowColor.opacity(0.25), radius: 12, y: 6)
+            .clipShape(RoundedRectangle(cornerRadius: Radius.lg, style: .continuous))
+            .shadow(color: shadowColor.opacity(0.32), radius: 14, y: 6)
             .scaleEffect(isPressed ? 0.96 : 1.0)
         }
         .simultaneousGesture(
             DragGesture(minimumDistance: 0)
-                .onChanged { _ in withAnimation(.spring(response: 0.2)) { isPressed = true } }
-                .onEnded { _ in withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) { isPressed = false } }
+                .onChanged { _ in withAnimation(Motion.snappy) { isPressed = true } }
+                .onEnded { _ in withAnimation(Motion.snappy) { isPressed = false } }
         )
     }
 }

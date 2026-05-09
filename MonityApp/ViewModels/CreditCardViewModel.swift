@@ -62,6 +62,7 @@ final class CreditCardViewModel: ObservableObject {
             method: "POST",
             body: body
         )
+        DataChangeNotifier.post()
     }
 
     func deleteCard(_ id: String) async {
@@ -71,6 +72,7 @@ final class CreditCardViewModel: ObservableObject {
                 method: "DELETE"
             )
             cards.removeAll { $0.id == id }
+            DataChangeNotifier.post()
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -166,6 +168,7 @@ final class CreditCardViewModel: ObservableObject {
                 cardTransactions = []
             }
             _ = response.charged
+            DataChangeNotifier.post()
         } catch {
             errorMessage = error.localizedDescription
         }

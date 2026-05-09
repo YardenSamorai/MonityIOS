@@ -3,55 +3,51 @@ import Charts
 
 struct MonthlyBarChart: View {
     let data: [MonthlyData]
-    @State private var barsRevealed = false
 
     var body: some View {
-        SolidCard {
+        GlassSurface {
             VStack(alignment: .leading, spacing: 16) {
-                HStack {
-                    GradientIcon(systemName: "chart.bar.fill", gradient: AppTheme.primaryGradient)
-                    Text("monthly_comparison")
-                        .font(.headline)
+                HStack(spacing: 10) {
+                    ZStack {
+                        Circle().fill(BrandColor.primary.opacity(0.13))
+                        Image(systemName: "chart.bar.fill")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundStyle(BrandColor.primary)
+                    }
+                    .frame(width: 32, height: 32)
+                    Text("monthly_comparison").font(AppFont.titleS)
                 }
 
                 Chart {
                     ForEach(data) { item in
                         BarMark(
                             x: .value("Month", item.label),
-                            y: .value("Amount", barsRevealed ? item.income : 0)
+                            y: .value("Amount", item.income)
                         )
-                        .foregroundStyle(AppTheme.income.gradient)
+                        .foregroundStyle(BrandColor.income.gradient)
                         .cornerRadius(6)
                         .position(by: .value("Type", L("income")))
 
                         BarMark(
                             x: .value("Month", item.label),
-                            y: .value("Amount", barsRevealed ? item.expense : 0)
+                            y: .value("Amount", item.expense)
                         )
-                        .foregroundStyle(AppTheme.expense.gradient)
+                        .foregroundStyle(BrandColor.expense.gradient)
                         .cornerRadius(6)
                         .position(by: .value("Type", L("expenses")))
                     }
                 }
                 .frame(height: 200)
                 .chartForegroundStyleScale([
-                    L("income"): AppTheme.income,
-                    L("expenses"): AppTheme.expense,
+                    L("income"): BrandColor.income,
+                    L("expenses"): BrandColor.expense,
                 ])
-                .onAppear {
-                    withAnimation(.spring(response: 0.8, dampingFraction: 0.7).delay(0.2)) {
-                        barsRevealed = true
-                    }
-                }
 
                 HStack(spacing: 20) {
-                    legendItem(color: AppTheme.income, label: "income")
-                        .bounceIn(delay: 0.6)
-                    legendItem(color: AppTheme.expense, label: "expenses")
-                        .bounceIn(delay: 0.7)
+                    legendItem(color: BrandColor.income, label: "income")
+                    legendItem(color: BrandColor.expense, label: "expenses")
                 }
             }
-            .padding(20)
         }
     }
 
@@ -59,9 +55,9 @@ struct MonthlyBarChart: View {
         HStack(spacing: 6) {
             RoundedRectangle(cornerRadius: 3, style: .continuous)
                 .fill(color)
-                .frame(width: 12, height: 12)
+                .frame(width: 10, height: 10)
             Text(label)
-                .font(.caption.weight(.medium))
+                .font(AppFont.caption)
                 .foregroundStyle(.secondary)
         }
     }

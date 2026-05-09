@@ -32,6 +32,59 @@
 "use_faceid_instead" = "Use Face ID instead";
 "welcome_back" = "Welcome back";
 "or" = "or";
+"tap_to_authenticate" = "Tap to authenticate";
+"no_account" = "Don't have an account?";
+"have_account" = "Already have an account?";
+"back" = "Back";
+"invalid_email" = "Please enter a valid email address";
+
+/* Dashboard */
+"hero_subtitle" = "Total available across all accounts";
+"note" = "Note";
+"reorder_hint" = "Use the arrows to reorder your cards. Order also reflects on the dashboard.";
+"limit" = "Limit";
+"add_card" = "Add Card";
+"card_name" = "Card Name";
+"last_4_digits" = "Last 4 Digits";
+"expenses_by_category_subtitle" = "Where your money is going";
+"used" = "used";
+"of" = "of";
+"total" = "Total";
+"today" = "Today";
+"yesterday" = "Yesterday";
+"delete_transaction_confirm" = "Delete this transaction?";
+
+/* Tab Bar (new) */
+"tab_overview" = "Overview";
+"tab_activity" = "Activity";
+"tab_insights" = "Insights";
+"tab_cards" = "Cards";
+"tab_more" = "More";
+
+/* More Menu */
+"more_household_subtitle" = "Manage shared expenses with a partner";
+"more_recurring_subtitle" = "Schedule automatic transactions";
+"more_budgets_subtitle" = "Set monthly category limits";
+"more_settings_subtitle" = "Profile, currency, language";
+
+/* Forgot Password (OTP flow) */
+"forgot_step_email_title" = "Reset Password";
+"forgot_step_email_subtitle" = "Enter your email and we'll send you a 6-digit verification code.";
+"forgot_step_code_title" = "Enter Verification Code";
+"forgot_step_code_subtitle" = "We sent a 6-digit code to %@. Check your inbox (and spam folder).";
+"forgot_step_password_title" = "Choose New Password";
+"forgot_step_password_subtitle" = "Pick a strong password you'll remember.";
+"forgot_send_code" = "Send Code";
+"forgot_verify_code" = "Verify Code";
+"forgot_resend_code" = "Resend code";
+"forgot_invalid_code" = "Please enter the 6-digit code";
+"forgot_rate_limited" = "Please wait a moment before requesting another code.";
+"forgot_code_resent" = "A new code has been sent.";
+"forgot_success_message" = "You can now sign in with your new password.";
+"password_weak" = "Weak";
+"password_fair" = "Fair";
+"password_good" = "Good";
+"password_strong" = "Strong";
 
 /* Dashboard */
 "dashboard" = "Dashboard";
@@ -118,6 +171,8 @@
 "delete_recurring" = "Delete Recurring";
 "delete_recurring_confirm" = "Delete Recurring Transaction?";
 "delete_recurring_message" = "This will stop future automatic transactions.";
+"run_now" = "Run Now";
+"recurring_already_generated" = "A transaction for this period was already generated.";
 
 /* Charts */
 "charts" = "Charts";

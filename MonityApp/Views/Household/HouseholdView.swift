@@ -16,7 +16,7 @@ struct HouseholdView: View {
                     noHouseholdView
                 }
             }
-            .background(Color(.systemGroupedBackground))
+            .background(CanvasBackground())
             .navigationTitle(L("household"))
             .sheet(isPresented: $showSetup) {
                 HouseholdSetupView(viewModel: viewModel)
@@ -35,39 +35,32 @@ struct HouseholdView: View {
                     invitationsBanner
                 }
 
-                VStack(spacing: 20) {
-                    Image(systemName: "house.and.flag.fill")
-                        .font(.system(size: 56))
-                        .foregroundStyle(AppTheme.primaryGradient)
-                        .padding(.top, 40)
+                VStack(spacing: 18) {
+                    ZStack {
+                        Circle()
+                            .fill(BrandColor.primary.opacity(0.12))
+                            .frame(width: 90, height: 90)
+                        Image(systemName: "house.and.flag.fill")
+                            .font(.system(size: 36, weight: .light))
+                            .foregroundStyle(BrandColor.primary)
+                    }
+                    .padding(.top, 40)
 
                     Text("household_empty_title")
-                        .font(.title2.weight(.bold))
+                        .font(AppFont.titleL)
                         .multilineTextAlignment(.center)
 
                     Text("household_empty_subtitle")
-                        .font(.subheadline)
+                        .font(AppFont.body)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 32)
 
-                    Button {
-                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                    PrimaryButton(title: "create_household", icon: "plus.circle.fill") {
                         showSetup = true
-                    } label: {
-                        HStack(spacing: 8) {
-                            Image(systemName: "plus.circle.fill")
-                            Text("create_household")
-                        }
-                        .font(.headline)
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(AppTheme.primaryGradient)
-                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                     }
-                    .padding(.horizontal, 40)
-                    .padding(.top, 8)
+                    .padding(.horizontal, 32)
+                    .padding(.top, 4)
                 }
                 .padding(.bottom, 40)
             }
@@ -209,17 +202,24 @@ struct HouseholdView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 28)
+        .padding(.horizontal, 16)
         .background(
-            RoundedRectangle(cornerRadius: 28, style: .continuous)
-                .fill(
-                    LinearGradient(
-                        colors: [Color(hex: "6C63FF"), Color(hex: "E17055")],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
+            ZStack {
+                RoundedRectangle(cornerRadius: 28, style: .continuous)
+                    .fill(LinearGradient(
+                        colors: [BrandColor.primaryDeep, BrandColor.primary, BrandColor.primary.opacity(0.85)],
+                        startPoint: .topLeading, endPoint: .bottomTrailing
+                    ))
+                RoundedRectangle(cornerRadius: 28, style: .continuous)
+                    .stroke(
+                        LinearGradient(colors: [Color.white.opacity(0.3), Color.white.opacity(0.05)], startPoint: .topLeading, endPoint: .bottomTrailing),
+                        lineWidth: 1
                     )
-                )
-                .shadow(color: Color(hex: "6C63FF").opacity(0.3), radius: 20, y: 10)
+                    .blendMode(.plusLighter)
+            }
         )
+        .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+        .shadow(color: BrandColor.primary.opacity(0.3), radius: 20, y: 10)
     }
 
     // MARK: - Shared Income/Expense

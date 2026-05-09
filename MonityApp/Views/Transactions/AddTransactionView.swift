@@ -14,9 +14,6 @@ struct AddTransactionView: View {
     @State private var isSubmitting = false
     @State private var errorMessage: String?
     @State private var showDeleteConfirm = false
-    @State private var formAppeared = false
-    @State private var showSuccess = false
-    @State private var saveButtonScale: CGFloat = 1.0
     @State private var installments: Int = 1
 
     var editingTransaction: Transaction?
@@ -26,180 +23,57 @@ struct AddTransactionView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView(showsIndicators: false) {
-                VStack(spacing: 24) {
-                    typePicker
-                        .staggeredAppear(appeared: formAppeared, index: 0)
+            ZStack {
+                CanvasBackground()
 
-                    CurrencyTextField(title: "amount", value: $amountText, currency: currency)
-                        .staggeredAppear(appeared: formAppeared, index: 1)
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: 18) {
+                        typePicker
 
-                    SolidCard {
-                        VStack(spacing: 0) {
-                            fieldRow(icon: "pencil.line", label: "note_placeholder") {
-                                TextField(type == .income ? L("note_placeholder_income") : L("note_placeholder"), text: $note)
-                                    .font(.subheadline)
-                            }
+                        amountInput
 
-                            Divider().padding(.leading, 52)
+                        detailsCard
 
-                            fieldRow(icon: "calendar", label: "date") {
-                                DatePicker("", selection: $date, displayedComponents: .date)
-                                    .labelsHidden()
-                            }
+                        if let error = errorMessage {
+                            errorBanner(error)
+                        }
 
-                            Divider().padding(.leading, 52)
+                        PrimaryButton(
+                            title: isEditing ? "update" : "save",
+                            icon: isEditing ? "pencil" : "checkmark",
+                            isLoading: isSubmitting,
+                            isDisabled: amountText.isEmpty
+                        ) {
+                            Task { await save() }
+                        }
 
-                            NavigationLink {
-                                CategoryPickerView(
-                                    categories: viewModel.categories.filter {
-                                        $0.type.rawValue == type.rawValue || $0.type == .both
-                                    },
-                                    selectedId: $selectedCategoryId
-                                )
+                        if isEditing {
+                            Button(role: .destructive) {
+                                showDeleteConfirm = true
                             } label: {
-                                fieldRow(icon: "tag.fill", label: "category") {
-                                    if let cat = viewModel.categories.first(where: { $0.id == selectedCategoryId }) {
-                                        HStack(spacing: 6) {
-                                            Text(cat.icon)
-                                            Text(cat.localizedName)
-                                                .font(.subheadline)
-                                                .foregroundStyle(.secondary)
-                                        }
-                                    } else {
-                                        Text("select_category")
-                                            .font(.subheadline)
-                                            .foregroundStyle(.tertiary)
-                                    }
-                                    Image(systemName: "chevron.right")
-                                        .font(.caption.weight(.semibold))
-                                        .foregroundStyle(.tertiary)
-                                }
-                            }
-
-                            if !viewModel.creditCards.isEmpty {
-                                Divider().padding(.leading, 52)
-
-                                fieldRow(icon: "creditcard.fill", label: "payment_method") {
-                                    Picker("", selection: $selectedCreditCardId) {
-                                        Text("bank_account").tag(nil as String?)
-                                        ForEach(viewModel.creditCards) { card in
-                                            Text("\(card.name) •\(card.lastFourDigits)").tag(card.id as String?)
-                                        }
-                                    }
-                                    .pickerStyle(.menu)
-                                    .tint(.secondary)
-                                }
-                            }
-
-                            if selectedCreditCardId != nil && type == .expense && !isEditing {
-                                Divider().padding(.leading, 52)
-
-                                fieldRow(icon: "repeat", label: "installments_count") {
-                                    Stepper(value: $installments, in: 1...36) {
-                                        Text(installments == 1 ? L("single_payment") : "\(installments) \(L("installments"))")
-                                            .font(.subheadline)
-                                            .foregroundStyle(.secondary)
-                                    }
-                                }
-
-                                if installments > 1, let amount = Double(amountText), amount > 0 {
-                                    let perInstallment = (amount / Double(installments) * 100).rounded() / 100
-                                    HStack(spacing: 4) {
-                                        Image(systemName: "info.circle")
-                                            .font(.caption2)
-                                        Text("\(installments) x \(CurrencyHelper.format(perInstallment, currency: currency))")
-                                            .font(.caption)
-                                    }
-                                    .foregroundStyle(.secondary)
-                                    .padding(.horizontal, 54)
-                                    .padding(.bottom, 8)
-                                }
-                            }
-                        }
-                    }
-
-                    if let error = errorMessage {
-                        HStack(spacing: 6) {
-                            Image(systemName: "exclamationmark.triangle.fill")
-                                .font(.caption)
-                            Text(error)
-                                .font(.caption)
-                        }
-                        .foregroundStyle(.red)
-                        .transition(.move(edge: .top).combined(with: .opacity))
-                        .animation(.spring(response: 0.4), value: errorMessage)
-                    }
-
-                    Button {
-                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                        withAnimation(.spring(response: 0.2)) { saveButtonScale = 0.95 }
-                        Task {
-                            await save()
-                            withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) { saveButtonScale = 1.0 }
-                        }
-                    } label: {
-                        ZStack {
-                            if showSuccess {
                                 HStack(spacing: 8) {
-                                    Image(systemName: "checkmark.circle.fill")
-                                        .font(.body.weight(.semibold))
-                                    Text(isEditing ? "update" : "save")
-                                        .font(.headline)
+                                    Image(systemName: "trash")
+                                    Text("delete_transaction")
                                 }
-                                .transition(.scale.combined(with: .opacity))
-                            } else if isSubmitting {
-                                ProgressView().tint(.white)
-                            } else {
-                                Text(isEditing ? "update" : "save")
-                                    .font(.headline)
+                                .font(.subheadline.weight(.semibold))
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 48)
+                                .foregroundStyle(BrandColor.expense)
+                                .background(BrandColor.expense.opacity(0.1))
+                                .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
                             }
                         }
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 54)
-                        .background(amountText.isEmpty ? AnyShapeStyle(Color.gray.opacity(0.3)) : AnyShapeStyle(AppTheme.primaryGradient))
-                        .foregroundStyle(.white)
-                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                        .shadow(color: amountText.isEmpty ? .clear : AppTheme.accent.opacity(0.3), radius: 12, y: 6)
-                        .scaleEffect(saveButtonScale)
                     }
-                    .disabled(isSubmitting || amountText.isEmpty)
-                    .staggeredAppear(appeared: formAppeared, index: 3)
-
-                    if isEditing {
-                        Button(role: .destructive) {
-                            showDeleteConfirm = true
-                        } label: {
-                            HStack(spacing: 8) {
-                                Image(systemName: "trash")
-                                    .font(.subheadline.weight(.medium))
-                                Text("delete_transaction")
-                                    .font(.subheadline.weight(.semibold))
-                            }
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 48)
-                            .foregroundStyle(.red)
-                            .background(Color.red.opacity(0.1))
-                            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                        }
-                    }
+                    .padding(.horizontal, Spacing.screenHorizontal)
+                    .padding(.top, 8)
+                    .padding(.bottom, 32)
                 }
-                .padding(20)
-                .padding(.bottom, 20)
             }
-            .background(Color(.systemGroupedBackground))
             .navigationTitle(isEditing ? "edit_transaction" : "add_transaction")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button { dismiss() } label: {
-                        Image(systemName: "xmark")
-                            .font(.body.weight(.medium))
-                            .foregroundStyle(.secondary)
-                            .frame(width: 30, height: 30)
-                            .background(Color(.systemGray5))
-                            .clipShape(Circle())
-                    }
+                    GlassIconButton(icon: "xmark", size: 32) { dismiss() }
                 }
             }
             .confirmationDialog(L("delete_confirm_title"), isPresented: $showDeleteConfirm, titleVisibility: .visible) {
@@ -221,9 +95,200 @@ struct AddTransactionView: View {
                 if let txn = editingTransaction {
                     populateFields(from: txn)
                 }
-                formAppeared = true
             }
         }
+    }
+
+    // MARK: - Type Picker (Segmented)
+
+    private var typePicker: some View {
+        HStack(spacing: 4) {
+            typeButton(.expense, label: "expense", icon: "arrow.up.right", color: BrandColor.expense)
+            typeButton(.income, label: "income", icon: "arrow.down.left", color: BrandColor.income)
+        }
+        .padding(4)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .strokeBorder(Surface.separator.opacity(0.4), lineWidth: 0.5)
+        )
+    }
+
+    private func typeButton(_ t: Transaction.TransactionType, label: LocalizedStringKey, icon: String, color: Color) -> some View {
+        let active = type == t
+        return Button {
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            withAnimation(Motion.snappy) {
+                type = t
+                if t == .income { installments = 1 }
+            }
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: icon).font(.system(size: 12, weight: .bold))
+                Text(label).font(.subheadline.weight(.bold))
+            }
+            .foregroundStyle(active ? Color.white : Color.secondary)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+            .background(active ? color : Color.clear)
+            .clipShape(RoundedRectangle(cornerRadius: 11, style: .continuous))
+            .shadow(color: active ? color.opacity(0.3) : .clear, radius: 6, y: 3)
+        }
+    }
+
+    // MARK: - Amount Input (hero)
+
+    private var amountInput: some View {
+        FeatureGlassCard(
+            cornerRadius: Radius.xxl,
+            padding: 24,
+            gradient: LinearGradient(
+                colors: type == .expense
+                    ? [BrandColor.expense, BrandColor.expense.opacity(0.7)]
+                    : [BrandColor.income, BrandColor.income.opacity(0.7)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            ),
+            glowColor: type == .expense ? BrandColor.expense : BrandColor.income
+        ) {
+            VStack(spacing: 8) {
+                Text("amount")
+                    .font(AppFont.label)
+                    .foregroundStyle(.white.opacity(0.85))
+                    .textCase(.uppercase)
+                    .tracking(0.5)
+
+                CurrencyTextField(title: "", value: $amountText, currency: currency)
+            }
+        }
+    }
+
+    // MARK: - Details Card
+
+    private var detailsCard: some View {
+        GlassSurface(padding: 0) {
+            VStack(spacing: 0) {
+                fieldRow(icon: "pencil.line", label: "note") {
+                    TextField(type == .income ? L("note_placeholder_income") : L("note_placeholder"), text: $note)
+                        .font(AppFont.body)
+                }
+
+                Divider().padding(.leading, 52)
+
+                fieldRow(icon: "calendar", label: "date") {
+                    DatePicker("", selection: $date, displayedComponents: .date)
+                        .labelsHidden()
+                }
+
+                Divider().padding(.leading, 52)
+
+                NavigationLink {
+                    CategoryPickerView(
+                        categories: viewModel.categories.filter {
+                            $0.type.rawValue == type.rawValue || $0.type == .both
+                        },
+                        selectedId: $selectedCategoryId
+                    )
+                } label: {
+                    fieldRow(icon: "tag.fill", label: "category") {
+                        if let cat = viewModel.categories.first(where: { $0.id == selectedCategoryId }) {
+                            HStack(spacing: 6) {
+                                Text(cat.icon)
+                                Text(cat.localizedName)
+                                    .font(AppFont.body)
+                                    .foregroundStyle(.primary)
+                            }
+                        } else {
+                            Text("select_category")
+                                .font(AppFont.body)
+                                .foregroundStyle(.tertiary)
+                        }
+                        Image(systemName: "chevron.right")
+                            .font(.caption.weight(.bold))
+                            .foregroundStyle(.tertiary)
+                            .environment(\.layoutDirection, .leftToRight)
+                    }
+                }
+                .buttonStyle(.plain)
+
+                if !viewModel.creditCards.isEmpty {
+                    Divider().padding(.leading, 52)
+                    fieldRow(icon: "creditcard.fill", label: "payment_method") {
+                        Picker("", selection: $selectedCreditCardId) {
+                            Text("bank_account").tag(nil as String?)
+                            ForEach(viewModel.creditCards) { card in
+                                Text("\(card.name) •\(card.lastFourDigits)").tag(card.id as String?)
+                            }
+                        }
+                        .pickerStyle(.menu)
+                        .tint(.secondary)
+                    }
+                }
+
+                if selectedCreditCardId != nil && type == .expense && !isEditing {
+                    Divider().padding(.leading, 52)
+                    fieldRow(icon: "repeat", label: "installments_count") {
+                        Stepper(value: $installments, in: 1...36) {
+                            Text(installments == 1 ? L("single_payment") : "\(installments) \(L("installments"))")
+                                .font(AppFont.body)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    if installments > 1, let amount = Double(amountText), amount > 0 {
+                        let perInstallment = (amount / Double(installments) * 100).rounded() / 100
+                        HStack(spacing: 4) {
+                            Image(systemName: "info.circle").font(.caption2)
+                            Text("\(installments) × \(CurrencyHelper.format(perInstallment, currency: currency))")
+                                .font(AppFont.caption)
+                        }
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 54)
+                        .padding(.bottom, 10)
+                    }
+                }
+            }
+        }
+    }
+
+    private func fieldRow<Content: View>(icon: String, label: LocalizedStringKey, @ViewBuilder content: () -> Content) -> some View {
+        HStack(spacing: 14) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 9, style: .continuous)
+                    .fill(BrandColor.primary.opacity(0.12))
+                Image(systemName: icon)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(BrandColor.primary)
+            }
+            .frame(width: 30, height: 30)
+
+            VStack(alignment: .leading, spacing: 0) {
+                Text(label)
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                    .textCase(.uppercase)
+                    .tracking(0.4)
+                content()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+    }
+
+    private func errorBanner(_ message: String) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.subheadline.weight(.bold))
+            Text(message)
+                .font(AppFont.caption)
+            Spacer()
+        }
+        .foregroundStyle(BrandColor.expense)
+        .padding(12)
+        .background(BrandColor.expense.opacity(0.1))
+        .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
     }
 
     private func populateFields(from txn: Transaction) {
@@ -241,50 +306,6 @@ struct AddTransactionView: View {
         if let parsed = formatter.date(from: txn.date) {
             date = parsed
         }
-    }
-
-    private var typePicker: some View {
-        HStack(spacing: 0) {
-            typeButton(.expense, label: "expense", icon: "arrow.up.right")
-            typeButton(.income, label: "income", icon: "arrow.down.left")
-        }
-        .padding(4)
-        .background(Color(.systemGray5))
-        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-    }
-
-    private func typeButton(_ t: Transaction.TransactionType, label: LocalizedStringKey, icon: String) -> some View {
-        Button {
-            withAnimation(.spring(response: 0.3)) {
-                type = t
-                if t == .income { installments = 1 }
-            }
-        } label: {
-            HStack(spacing: 6) {
-                Image(systemName: icon)
-                    .font(.caption.weight(.bold))
-                Text(label)
-                    .font(.subheadline.weight(.semibold))
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 12)
-            .background(type == t ? (t == .expense ? AppTheme.expenseGradient : AppTheme.incomeGradient) : LinearGradient(colors: [.clear], startPoint: .leading, endPoint: .trailing))
-            .foregroundStyle(type == t ? .white : .secondary)
-            .clipShape(RoundedRectangle(cornerRadius: 11, style: .continuous))
-        }
-    }
-
-    private func fieldRow<Content: View>(icon: String, label: LocalizedStringKey, @ViewBuilder content: () -> Content) -> some View {
-        HStack(spacing: 14) {
-            Image(systemName: icon)
-                .font(.body.weight(.medium))
-                .foregroundStyle(AppTheme.accent)
-                .frame(width: 24)
-            content()
-            Spacer()
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 14)
     }
 
     private func save() async {
