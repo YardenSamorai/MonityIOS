@@ -215,6 +215,9 @@
 "insight_peak_month_title" = "חודש שיא בהוצאות";
 "insight_peak_month_body" = "ב־%@ נרשמו ההוצאות הגבוהות ביותר כאן: כ־%@.";
 
+"insights_collapse" = "הסתר";
+"insights_expand" = "הצג";
+
 /* Settings */
 "settings" = "הגדרות";
 "profile" = "פרופיל";
@@ -351,6 +354,7 @@
 "shared_balance" = "יתרה משותפת";
 "pending_invitation" = "הזמנה ממתינה";
 "pending_invitations" = "הזמנות ממתינות";
+"household_invite_banner_title" = "יש לכם הזמנה למשק בית";
 "invited_you" = "הזמין/ה אותך להצטרף";
 "accept" = "קבל";
 "decline" = "דחה";

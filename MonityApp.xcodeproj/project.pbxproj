@@ -35,6 +35,7 @@
 		B1D2E4F5A6C8371D90E4F123 /* BalanceDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2E3F5A6B7D9482E01F5A234 /* BalanceDetailView.swift */; };
 		B2C3D4E5F6071829A0B1C2D3 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718A9B0C1D2 /* OnboardingView.swift */; };
 		B52B6E217D9CFDA5BA1B445B /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B6E4256F3C34E97BD5A0EB3 /* AuthService.swift */; };
+		HI00000001000001INVBUILD01 /* HouseholdInvitationCenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = HI00000002000002INVREFF02 /* HouseholdInvitationCenter.swift */; };
 		B5BE099158C829E4CC239DE3 /* CategoryPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06EE3B655CA53E19209967F3 /* CategoryPickerView.swift */; };
 		BB00000000000001THEME001 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000000000002THEME002 /* Theme.swift */; };
 		BB00000000000003DSGN001 /* DesignComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000000000004DSGN002 /* DesignComponents.swift */; };
@@ -109,6 +110,7 @@
 		14EE16224411A0040AC087B4 /* MonityApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonityApp.swift; sourceTree = "<group>"; };
 		18787EB47653C88541233D1F /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
 		2B6E4256F3C34E97BD5A0EB3 /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
+		HI00000002000002INVREFF02 /* HouseholdInvitationCenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HouseholdInvitationCenter.swift; sourceTree = "<group>"; };
 		31B1E37494210A6CB441A7F7 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
 		34F295D8A999DA7F8AAF32E7 /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		3897E03B93080A048B71107E /* TransactionListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionListView.swift; sourceTree = "<group>"; };
@@ -222,6 +224,7 @@
 			children = (
 				18787EB47653C88541233D1F /* APIClient.swift */,
 				2B6E4256F3C34E97BD5A0EB3 /* AuthService.swift */,
+				HI00000002000002INVREFF02 /* HouseholdInvitationCenter.swift */,
 				EE00000000000002BIOM0002 /* BiometricAuthManager.swift */,
 				F0AC532B1A75A00CE1CFA507 /* KeychainHelper.swift */,
 				EE00000000000006NOTM0002 /* NotificationManager.swift */,
@@ -537,6 +540,7 @@
 				D72650AECFCF8C7235DA8071 /* User.swift in Sources */,
 				5BC662FDDF3F0B6143548F43 /* APIClient.swift in Sources */,
 				B52B6E217D9CFDA5BA1B445B /* AuthService.swift in Sources */,
+				HI00000001000001INVBUILD01 /* HouseholdInvitationCenter.swift in Sources */,
 				00E97171EA4A6C54EA4123EE /* KeychainHelper.swift in Sources */,
 				FF30798542BAD547B4D000AD /* Constants.swift in Sources */,
 				AA00000000000001LANG0001 /* LanguageManager.swift in Sources */,

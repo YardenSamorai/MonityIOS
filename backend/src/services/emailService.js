@@ -126,7 +126,76 @@ async function sendOtpEmail(to, code, language = 'he') {
   }
 }
 
+async function sendHouseholdInviteEmail(to, { inviterName, householdName, language = 'he' } = {}) {
+  const fromAddress = process.env.SMTP_FROM || process.env.SMTP_USER;
+  const t = getTransporter();
+
+  const he = language === 'he';
+  const subject = he
+    ? `הזמנה למשק הבית ב‑Monity — ${householdName || 'משק בית'}`
+    : `Monity household invitation — ${householdName || 'Household'}`;
+
+  if (!t) {
+    console.log('========================================');
+    console.log(`[DEV ONLY] Household invite for ${to}`);
+    console.log(`From: ${inviterName || '(inviter)'}, Household: ${householdName || '—'}`);
+    console.log(he
+      ? 'פתחו את האפליקציה והתחברו עם המייל הזה כדי לראות את ההזמנה ב״עוד״ ← ״משק בית״.'
+      : 'Open the app and sign in with this email to see the invite under More → Household.');
+    console.log('Configure SMTP env vars to send via email.');
+    console.log('========================================');
+    return { success: false, dev: true };
+  }
+
+  const greeting = he ? 'שלום' : 'Hello';
+  const line1 = he
+    ? `${inviterName || 'מישהו'} הזמין/ה אתכם למשק הבית <strong>${householdName || 'משק בית'}</strong> ב‑Monity.`
+    : `${inviterName || 'Someone'} invited you to the household <strong>${householdName || 'Household'}</strong> in Monity.`;
+  const line2 = he
+    ? 'התקינו את האפליקציה (אם עוד לא), התחברו עם כתובת המייל הזו — ותראו את ההזמנה תחת ״עוד״ → ״משק בית״, שם אפשר לאשר או לדחות.'
+    : 'Install the app if needed, sign in with this email address — you’ll see the invitation under More → Household, where you can accept or decline.';
+  const ignore = he
+    ? 'אם לא ציפיתם להזמנה, אפשר להתעלם מהודעה זו.'
+    : 'If you did not expect this invitation, you can ignore this email.';
+  const signature = he ? 'בברכה,\nצוות Monity' : 'Regards,\nThe Monity Team';
+  const direction = he ? 'rtl' : 'ltr';
+  const align = he ? 'right' : 'left';
+
+  const html = `
+<!DOCTYPE html>
+<html lang="${language}" dir="${direction}">
+<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>${subject}</title></head>
+<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background:#f5f5f7;">
+  <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background:#f5f5f7;padding:40px 20px;">
+    <tr><td align="center">
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width:520px;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.06);">
+        <tr><td style="padding:40px 32px;text-align:${align};direction:${direction};">
+          <h2 style="margin:0 0 12px;color:#1a1a1a;font-size:22px;font-weight:600;">${subject}</h2>
+          <p style="margin:0 0 16px;color:#555555;font-size:15px;line-height:1.6;">${greeting},<br/>${line1}</p>
+          <p style="margin:0 0 16px;color:#555555;font-size:15px;line-height:1.6;">${line2}</p>
+          <p style="margin:0;color:#888888;font-size:13px;line-height:1.6;">${ignore}</p>
+          <hr style="border:none;border-top:1px solid #eaeaea;margin:24px 0;" />
+          <p style="margin:0;color:#999999;font-size:13px;line-height:1.6;white-space:pre-line;">${signature}</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`.trim();
+
+  const textPlain = `${greeting},\n\n${line1.replace(/<[^>]+>/g, '')}\n\n${line2.replace(/<[^>]+>/g, '')}\n\n${ignore}\n\n${signature}`;
+
+  try {
+    await t.sendMail({ from: fromAddress, to, subject, text: textPlain, html });
+    return { success: true };
+  } catch (err) {
+    console.error('Household invite email error:', err.message);
+    return { success: false, error: err.message };
+  }
+}
+
 module.exports = {
   sendOtpEmail,
+  sendHouseholdInviteEmail,
   isConfigured,
 };

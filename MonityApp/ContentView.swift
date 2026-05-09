@@ -1,20 +1,64 @@
 import SwiftUI
 
 struct ContentView: View {
-    @EnvironmentObject var authService: AuthService
+    @EnvironmentObject var invitationCenter: HouseholdInvitationCenter
     @State private var selectedTab: AppTab = .dashboard
 
     var body: some View {
         ZStack(alignment: .bottom) {
-            tabContent
-                .ignoresSafeArea(.keyboard)
+            VStack(spacing: 0) {
+                if !invitationCenter.invitations.isEmpty {
+                    householdInvitesStrip
+                }
 
-            FloatingGlassTabBar(selection: $selectedTab)
+                tabContent
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .ignoresSafeArea(.keyboard)
+            }
+
+            FloatingGlassTabBar(
+                selection: $selectedTab,
+                pendingHouseholdInvites: invitationCenter.invitations.count
+            )
                 .padding(.horizontal, 16)
                 .padding(.bottom, 8)
         }
         .background(CanvasBackground())
         .ignoresSafeArea(.keyboard)
+        .task {
+            await invitationCenter.refresh()
+        }
+    }
+
+    private var householdInvitesStrip: some View {
+        VStack(spacing: 6) {
+            Text("household_invite_banner_title")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, Spacing.screenHorizontal)
+                .padding(.top, 10)
+
+            ScrollView {
+                VStack(spacing: 10) {
+                    ForEach(invitationCenter.invitations) { invitation in
+                        HouseholdInvitationCard(
+                            invitation: invitation,
+                            onAccept: {
+                                Task { await invitationCenter.acceptInvitation(invitation.id) }
+                            },
+                            onDecline: {
+                                Task { await invitationCenter.declineInvitation(invitation.id) }
+                            }
+                        )
+                    }
+                }
+                .padding(.horizontal, Spacing.screenHorizontal)
+                .padding(.bottom, 12)
+            }
+            .frame(maxHeight: 240)
+        }
+        .background(.ultraThinMaterial)
     }
 
     @ViewBuilder
@@ -71,6 +115,7 @@ enum AppTab: String, CaseIterable, Identifiable {
 
 struct FloatingGlassTabBar: View {
     @Binding var selection: AppTab
+    var pendingHouseholdInvites: Int = 0
     @Namespace private var indicator
 
     var body: some View {
@@ -117,6 +162,14 @@ struct FloatingGlassTabBar: View {
                 VStack(spacing: 3) {
                     Image(systemName: isActive ? tab.iconActive : tab.icon)
                         .font(.system(size: 18, weight: .semibold))
+                        .overlay(alignment: .topTrailing) {
+                            if tab == .more && pendingHouseholdInvites > 0 {
+                                Circle()
+                                    .fill(Color.red)
+                                    .frame(width: 7, height: 7)
+                                    .offset(x: 5, y: -4)
+                            }
+                        }
                     if isActive {
                         Text(LocalizedStringKey(tab.titleKey))
                             .font(.system(size: 10, weight: .bold))

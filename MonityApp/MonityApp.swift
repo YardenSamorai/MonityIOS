@@ -6,6 +6,7 @@ struct MonityApp: App {
     @StateObject private var languageManager = LanguageManager.shared
     @StateObject private var appearanceManager = AppearanceManager.shared
     @StateObject private var biometricManager = BiometricAuthManager.shared
+    @StateObject private var invitationCenter = HouseholdInvitationCenter()
     @Environment(\.scenePhase) private var scenePhase
 
     var body: some Scene {
@@ -30,6 +31,7 @@ struct MonityApp: App {
             .environmentObject(languageManager)
             .environmentObject(appearanceManager)
             .environmentObject(biometricManager)
+            .environmentObject(invitationCenter)
             .environment(\.locale, languageManager.locale)
             .environment(\.layoutDirection, languageManager.layoutDirection)
             .preferredColorScheme(appearanceManager.colorScheme)
@@ -39,6 +41,16 @@ struct MonityApp: App {
             .onChange(of: scenePhase) { _, newPhase in
                 if newPhase == .background {
                     biometricManager.lockIfEnabled()
+                }
+                if newPhase == .active {
+                    Task { await invitationCenter.refresh() }
+                }
+            }
+            .onChange(of: authService.isAuthenticated) { _, authenticated in
+                if authenticated {
+                    Task { await invitationCenter.refresh() }
+                } else {
+                    invitationCenter.clear()
                 }
             }
         }

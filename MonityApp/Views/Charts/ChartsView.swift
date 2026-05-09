@@ -4,6 +4,7 @@ import Charts
 struct ChartsView: View {
     @StateObject private var viewModel = ChartsViewModel()
     @Environment(\.scenePhase) private var scenePhase
+    @AppStorage("charts_smart_insights_collapsed") private var smartInsightsCollapsed = false
 
     private var chartCurrency: String {
         AuthService.shared.currentUser?.preferredCurrency ?? "ILS"
@@ -41,20 +42,42 @@ struct ChartsView: View {
                                             Text("smart_insights")
                                                 .font(AppFont.titleS)
                                             Spacer()
+                                            Button {
+                                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                                withAnimation(Motion.snappy) {
+                                                    smartInsightsCollapsed.toggle()
+                                                }
+                                            } label: {
+                                                HStack(spacing: 4) {
+                                                    Text(smartInsightsCollapsed ? "insights_expand" : "insights_collapse")
+                                                        .font(.caption.weight(.semibold))
+                                                        .foregroundStyle(BrandColor.accent)
+                                                    Image(systemName: smartInsightsCollapsed ? "chevron.down" : "chevron.up")
+                                                        .font(.caption.weight(.bold))
+                                                        .foregroundStyle(BrandColor.accent)
+                                                }
+                                                .padding(.horizontal, 10)
+                                                .padding(.vertical, 6)
+                                                .background(BrandColor.accent.opacity(0.12))
+                                                .clipShape(Capsule())
+                                            }
+                                            .buttonStyle(.plain)
                                         }
                                         .padding(.horizontal, 14)
                                         .padding(.top, 14)
-                                        .padding(.bottom, 8)
+                                        .padding(.bottom, smartInsightsCollapsed ? 14 : 8)
 
-                                        ForEach(Array(viewModel.insights.enumerated()), id: \.element.id) { idx, insight in
-                                            ChartInsightCard(insight: insight)
-                                                .padding(.horizontal, 14)
-                                            if idx < viewModel.insights.count - 1 {
-                                                Divider()
-                                                    .padding(.leading, 64)
+                                        if !smartInsightsCollapsed {
+                                            ForEach(Array(viewModel.insights.enumerated()), id: \.element.id) { idx, insight in
+                                                ChartInsightCard(insight: insight)
+                                                    .padding(.horizontal, 14)
+                                                if idx < viewModel.insights.count - 1 {
+                                                    Divider()
+                                                        .padding(.leading, 64)
+                                                }
                                             }
+                                            .padding(.bottom, 10)
                                         }
-                                        .padding(.bottom, 10)
                                     }
                                 }
                             }

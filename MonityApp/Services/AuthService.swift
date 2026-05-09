@@ -129,6 +129,20 @@ final class AuthService: ObservableObject {
         currentUser = response.user
     }
 
+    /// Refreshes `currentUser` from the server (e.g. after reset-account).
+    func refreshProfile() async {
+        guard token != nil, !token!.isEmpty else { return }
+        do {
+            let response: UserResponse = try await APIClient.shared.request(
+                endpoint: "/auth/me",
+                method: "GET"
+            )
+            currentUser = response.user
+        } catch {
+            print("refreshProfile error: \(error)")
+        }
+    }
+
     func logout() {
         keychain.delete(for: Constants.keychainTokenKey)
         keychain.delete(for: "monity_biometric_token")

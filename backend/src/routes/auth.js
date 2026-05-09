@@ -343,6 +343,11 @@ router.post('/reset-account', authMiddleware, async (req, res) => {
     await Category.destroy({ where: { userId }, transaction: t });
     await PasswordResetToken.destroy({ where: { userId }, transaction: t });
 
+    await User.update(
+      { onboardingCompleted: false },
+      { where: { id: userId }, transaction: t }
+    );
+
     await t.commit();
     await seedDefaultCategories(userId);
 

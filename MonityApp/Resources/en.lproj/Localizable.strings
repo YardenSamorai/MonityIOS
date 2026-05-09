@@ -215,6 +215,9 @@
 "insight_peak_month_title" = "Peak spending month";
 "insight_peak_month_body" = "%@ had the highest expenses here: about %@.";
 
+"insights_collapse" = "Hide";
+"insights_expand" = "Show";
+
 /* Settings */
 "settings" = "Settings";
 "profile" = "Profile";
@@ -351,6 +354,7 @@
 "shared_balance" = "Shared Balance";
 "pending_invitation" = "Pending Invitation";
 "pending_invitations" = "Pending Invitations";
+"household_invite_banner_title" = "You have a household invitation";
 "invited_you" = "invited you to join";
 "accept" = "Accept";
 "decline" = "Decline";

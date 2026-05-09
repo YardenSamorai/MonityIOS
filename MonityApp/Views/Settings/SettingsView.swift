@@ -5,6 +5,7 @@ struct SettingsView: View {
     @EnvironmentObject var languageManager: LanguageManager
     @EnvironmentObject var appearanceManager: AppearanceManager
     @EnvironmentObject var biometricManager: BiometricAuthManager
+    @EnvironmentObject var invitationCenter: HouseholdInvitationCenter
     @StateObject private var viewModel = SettingsViewModel()
     @StateObject private var notificationManager = NotificationManager.shared
     @StateObject private var householdViewModel = HouseholdViewModel()
@@ -322,6 +323,10 @@ struct SettingsView: View {
                     isResettingAccount = true
                     await viewModel.resetAccountData()
                     isResettingAccount = false
+                    if viewModel.errorMessage == nil {
+                        await authService.refreshProfile()
+                        await invitationCenter.refresh()
+                    }
                     await householdViewModel.loadHousehold()
                 }
             }

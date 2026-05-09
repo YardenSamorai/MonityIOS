@@ -6,6 +6,7 @@ const {
   Transaction, Category, CreditCard, Budget, RecurringRule,
 } = require('../models');
 const { authMiddleware } = require('../middleware/auth');
+const { sendHouseholdInviteEmail } = require('../services/emailService');
 
 const router = express.Router();
 router.use(authMiddleware);
@@ -91,7 +92,8 @@ router.post('/invite', async (req, res) => {
 
     const normalizedEmail = email.toLowerCase();
 
-    if (normalizedEmail === (await User.findByPk(req.userId))?.email) {
+    const me = await User.findByPk(req.userId);
+    if (me && normalizedEmail === String(me.email || '').toLowerCase()) {
       return res.status(400).json({ error: 'You cannot invite yourself' });
     }
 
@@ -139,6 +141,15 @@ router.post('/invite', async (req, res) => {
       invitedEmail: normalizedEmail,
     });
 
+    const householdRow = await Household.findByPk(membership.householdId);
+    const inviter = await User.findByPk(req.userId, { attributes: ['name', 'locale'] });
+    const lang = inviter?.locale === 'en' ? 'en' : 'he';
+    sendHouseholdInviteEmail(normalizedEmail, {
+      inviterName: inviter?.name || '',
+      householdName: householdRow?.name || '',
+      language: lang,
+    }).catch((e) => console.error('Household invite email:', e));
+
     res.status(201).json({ invitation: invite });
   } catch (err) {
     console.error('Invite error:', err);
@@ -151,19 +162,26 @@ router.get('/invitations', async (req, res) => {
     const user = await User.findByPk(req.userId);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
+    const emailLower = String(user.email || '').toLowerCase();
+
     const invitations = await HouseholdMember.findAll({
       where: {
         status: 'pending',
         [Op.or]: [
           { userId: req.userId },
-          { invitedEmail: user.email },
+          sequelize.where(
+            sequelize.fn('LOWER', sequelize.col('invitedEmail')),
+            emailLower
+          ),
         ],
       },
       include: [{
         model: Household,
+        required: true,
         include: [{
           model: HouseholdMember,
           where: { role: 'owner', status: 'active' },
+          required: false,
           include: [{ model: User, attributes: ['id', 'name', 'email'] }],
         }],
       }],
@@ -195,7 +213,9 @@ router.post('/invitations/:id/accept', async (req, res) => {
       }
 
       const user = await User.findByPk(req.userId, { transaction: t });
-      if (invitation.userId !== req.userId && invitation.invitedEmail !== user.email) {
+      const invEmail = String(invitation.invitedEmail || '').toLowerCase();
+      const myEmail = String(user.email || '').toLowerCase();
+      if (invitation.userId !== req.userId && invEmail !== myEmail) {
         return { error: { code: 403, message: 'This invitation is not for you' } };
       }
 
@@ -249,7 +269,9 @@ router.post('/invitations/:id/decline', async (req, res) => {
     }
 
     const user = await User.findByPk(req.userId);
-    if (invitation.userId !== req.userId && invitation.invitedEmail !== user.email) {
+    const invEmailD = String(invitation.invitedEmail || '').toLowerCase();
+    const myEmailD = String(user.email || '').toLowerCase();
+    if (invitation.userId !== req.userId && invEmailD !== myEmailD) {
       return res.status(403).json({ error: 'This invitation is not for you' });
     }
 

@@ -78,23 +78,29 @@ struct CategoryPieChart: View {
                                 selectedCategory = selectedCategory?.id == cat.id ? nil : cat
                             }
                         } label: {
-                            HStack(spacing: 8) {
-                                Circle()
-                                    .fill(Color(hex: cat.Category?.color ?? "#0A6B5F"))
-                                    .frame(width: 8, height: 8)
-                                Text(cat.Category?.icon ?? "")
-                                    .font(.caption)
-                                Text(cat.Category?.localizedName ?? "")
-                                    .font(AppFont.caption)
-                                    .foregroundStyle(.primary)
-                                    .lineLimit(1)
-                                Spacer(minLength: 0)
+                            VStack(alignment: .leading, spacing: 6) {
+                                HStack(spacing: 8) {
+                                    Circle()
+                                        .fill(Color(hex: cat.Category?.color ?? "#0A6B5F"))
+                                        .frame(width: 8, height: 8)
+                                    Text(cat.Category?.icon ?? "")
+                                        .font(.caption)
+                                    Text(cat.Category?.localizedName ?? "")
+                                        .font(AppFont.caption)
+                                        .foregroundStyle(.primary)
+                                        .lineLimit(1)
+                                        .truncationMode(.tail)
+                                    Spacer(minLength: 0)
+                                }
                                 Text(CurrencyHelper.format(cat.totalAmount))
                                     .font(.system(size: 11, weight: .bold).monospacedDigit())
                                     .foregroundStyle(.secondary)
+                                    .frame(maxWidth: .infinity, alignment: .trailing)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.85)
                             }
                             .padding(.horizontal, 10)
-                            .padding(.vertical, 6)
+                            .padding(.vertical, 8)
                             .background(
                                 selectedCategory?.id == cat.id
                                     ? Color(hex: cat.Category?.color ?? "#0A6B5F").opacity(0.1)

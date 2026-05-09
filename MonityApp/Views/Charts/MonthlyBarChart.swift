@@ -52,6 +52,7 @@ struct MonthlyBarChart: View {
                     }
                 }
                 .chartXSelection(value: $selectedMonth)
+                .chartLegend(.hidden)
                 .frame(height: 200)
                 .chartForegroundStyleScale([
                     L("income"): BrandColor.income,
