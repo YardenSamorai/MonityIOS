@@ -381,6 +381,8 @@ struct HouseholdScreen: View {
             Text("recent_transactions")
                 .font(.title3.weight(.semibold))
 
+            householdTransactionMemberFilter
+
             if viewModel.recentTransactions.isEmpty && !viewModel.isLoading {
                 EmptyStateView(
                     icon: "tray",
@@ -403,6 +405,78 @@ struct HouseholdScreen: View {
                 }
             }
         }
+    }
+
+    /// Chips to filter the shared activity list by who logged the transaction.
+    private var householdTransactionMemberFilter: some View {
+        let members = (viewModel.household?.activeMembers ?? []).compactMap { m -> (String, String)? in
+            guard let uid = m.userId, !uid.isEmpty else { return nil }
+            let name = m.displayName
+            if name.isEmpty { return nil }
+            return (uid, name)
+        }
+
+        return Group {
+            if members.count > 1 {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("household_txn_filter_label")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
+                            householdTxnFilterChip(
+                                titleKey: "household_txn_filter_all",
+                                selected: viewModel.transactionFilterUserId == nil
+                            ) {
+                                Task { await viewModel.setTransactionMemberFilter(nil) }
+                            }
+
+                            ForEach(members, id: \.0) { uid, name in
+                                householdTxnFilterChip(
+                                    title: name.split(separator: " ").first.map(String.init) ?? name,
+                                    selected: viewModel.transactionFilterUserId == uid
+                                ) {
+                                    Task { await viewModel.setTransactionMemberFilter(uid) }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private func householdTxnFilterChip(
+        titleKey: LocalizedStringKey? = nil,
+        title: String? = nil,
+        selected: Bool,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            Group {
+                if let titleKey {
+                    Text(titleKey)
+                } else if let title {
+                    Text(title)
+                }
+            }
+            .font(.caption.weight(.semibold))
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .foregroundStyle(selected ? Color.white : Color.primary)
+            .background(
+                selected
+                    ? AnyShapeStyle(AppTheme.primaryGradient)
+                    : AnyShapeStyle(Color(.secondarySystemBackground))
+            )
+            .clipShape(Capsule())
+            .overlay(
+                Capsule()
+                    .strokeBorder(Color.primary.opacity(selected ? 0 : 0.08), lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
     }
 }
 

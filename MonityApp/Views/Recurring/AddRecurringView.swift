@@ -205,9 +205,16 @@ struct AddRecurringView: View {
 
                 Divider().padding(.leading, 52)
 
-                fieldRow(icon: "calendar", label: "start_date") {
-                    DatePicker("", selection: $startDate, displayedComponents: .date)
-                        .labelsHidden()
+                fieldRow(icon: "calendar", label: type == .income ? "recurring_income_date" : "recurring_expense_date") {
+                    VStack(alignment: .leading, spacing: 8) {
+                        DatePicker("", selection: $startDate, displayedComponents: .date)
+                            .labelsHidden()
+                            .environment(\.locale, LanguageManager.shared.locale)
+                        Text("recurring_start_date_hint")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 }
 
                 Divider().padding(.leading, 52)

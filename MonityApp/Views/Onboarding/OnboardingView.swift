@@ -8,14 +8,14 @@ struct OnboardingView: View {
 
     @State private var step = 0
 
-    private let totalSteps = 4
+    private let totalSteps = 5
 
     var body: some View {
         ZStack {
             CanvasBackground()
 
             VStack(spacing: 0) {
-                if step > 0 && step < totalSteps - 1 {
+                if step >= 1 && step <= 4 {
                     progressBar
                         .padding(.top, 8)
                 }
@@ -28,15 +28,18 @@ struct OnboardingView: View {
                     )
                     .transition(pageTransition)
                 case 1:
+                    OnboardingNotificationsStep(onNext: nextStep)
+                        .transition(pageTransition)
+                case 2:
                     OnboardingLanguageStep(
                         languageManager: languageManager,
                         onNext: nextStep
                     )
                     .transition(pageTransition)
-                case 2:
+                case 3:
                     OnboardingBalanceStep(onNext: nextStep)
                         .transition(pageTransition)
-                case 3:
+                case 4:
                     OnboardingRecurringStep(onComplete: completeOnboarding)
                         .transition(pageTransition)
                 default:
@@ -49,9 +52,9 @@ struct OnboardingView: View {
 
     private var progressBar: some View {
         HStack(spacing: 6) {
-            ForEach(1..<totalSteps, id: \.self) { i in
+            ForEach(0..<4, id: \.self) { i in
                 Capsule()
-                    .fill(i <= step ? BrandColor.primary : Color.secondary.opacity(0.18))
+                    .fill(step > i ? BrandColor.primary : Color.secondary.opacity(0.18))
                     .frame(height: 4)
                     .animation(.spring(response: 0.4, dampingFraction: 0.85), value: step)
             }
@@ -278,7 +281,7 @@ struct OnboardingBalanceStep: View {
 
             Spacer().frame(height: 40)
 
-            CurrencyTextField(title: "onb_current_balance", value: $balanceText, currency: currency)
+            CurrencyTextField(title: "onb_current_balance", value: $balanceText, currency: currency, style: .onCanvas)
                 .padding(.horizontal, 32)
                 .opacity(appeared ? 1 : 0)
                 .offset(y: appeared ? 0 : 15)
@@ -470,9 +473,17 @@ struct OnboardingRecurringStep: View {
                 Text(item.note)
                     .font(.subheadline.weight(.medium))
                     .lineLimit(1)
-                Text(L(item.frequency.rawValue))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                HStack(spacing: 6) {
+                    Text(L(item.frequency.rawValue))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Text("·")
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                    Text(DateHelper.display(DateHelper.toAPIString(item.startDate)))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
             }
 
             Spacer()
@@ -508,7 +519,7 @@ struct OnboardingRecurringStep: View {
                 "currency": item.currency,
                 "type": item.type.rawValue,
                 "frequency": item.frequency.rawValue,
-                "startDate": DateHelper.toAPIString(Date()),
+                "startDate": DateHelper.toAPIString(item.startDate),
                 "note": item.note,
             ]
             if let catId = item.categoryId { body["categoryId"] = catId }
@@ -540,6 +551,8 @@ struct OnboardingAddRecurringSheet: View {
     @State private var note = ""
     @State private var frequency: RecurringRule.Frequency = .monthly
     @State private var selectedCategoryId: Int?
+    /// First payment day / next occurrence — salary and other recurring items post from this date (server job), not before.
+    @State private var firstOccurrenceDate = Date()
     @StateObject private var catViewModel = RecurringViewModel()
 
     private var currency: String {
@@ -555,7 +568,8 @@ struct OnboardingAddRecurringSheet: View {
                     CurrencyTextField(
                         title: "amount",
                         value: $amountText,
-                        currency: currency
+                        currency: currency,
+                        style: .onCanvas
                     )
 
                     SolidCard {
@@ -600,6 +614,28 @@ struct OnboardingAddRecurringSheet: View {
                     }
 
                     frequencyPicker
+
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(type == .income ? LocalizedStringKey("recurring_income_date") : LocalizedStringKey("recurring_expense_date"))
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(.secondary)
+                            .padding(.leading, 4)
+
+                        DatePicker(
+                            "",
+                            selection: $firstOccurrenceDate,
+                            displayedComponents: .date
+                        )
+                        .labelsHidden()
+                        .datePickerStyle(.graphical)
+                        .environment(\.locale, LanguageManager.shared.locale)
+
+                        Text(type == .income ? LocalizedStringKey("onb_recurring_first_date_hint_income") : LocalizedStringKey("onb_recurring_first_date_hint_expense"))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .padding(.vertical, 4)
 
                     Button {
                         addItem()
@@ -727,7 +763,8 @@ struct OnboardingAddRecurringSheet: View {
             type: type,
             frequency: frequency,
             note: note,
-            categoryId: selectedCategoryId
+            categoryId: selectedCategoryId,
+            startDate: firstOccurrenceDate
         )
         UINotificationFeedbackGenerator().notificationOccurred(.success)
         onAdd(item)
@@ -745,6 +782,7 @@ struct OnboardingRecurringItem: Identifiable {
     let frequency: RecurringRule.Frequency
     let note: String
     let categoryId: Int?
+    let startDate: Date
 }
 
 // MARK: - Shared Button
@@ -785,5 +823,57 @@ struct OnboardingButton: View {
                 .onChanged { _ in withAnimation(Motion.snappy) { isPressed = true } }
                 .onEnded { _ in withAnimation(Motion.snappy) { isPressed = false } }
         )
+    }
+}
+
+// MARK: - Notifications (onboarding)
+
+struct OnboardingNotificationsStep: View {
+    let onNext: () -> Void
+
+    var body: some View {
+        VStack(spacing: 24) {
+            Spacer()
+            Image(systemName: "bell.badge.fill")
+                .font(.system(size: 56))
+                .foregroundStyle(BrandColor.primary)
+            Text("onb_notifications_title")
+                .font(.system(size: 24, weight: .bold, design: .rounded))
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 20)
+            Text("onb_notifications_body")
+                .font(.body)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 28)
+            Spacer()
+            VStack(spacing: 14) {
+                Button {
+                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                    Task {
+                        _ = await NotificationManager.shared.requestPermission()
+                        onNext()
+                    }
+                } label: {
+                    Text("onb_notifications_enable")
+                        .font(.headline.weight(.bold))
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 54)
+                        .background(BrandColor.primary)
+                        .foregroundStyle(.white)
+                        .clipShape(RoundedRectangle(cornerRadius: Radius.lg, style: .continuous))
+                }
+                Button {
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                    onNext()
+                } label: {
+                    Text("onb_notifications_skip")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .padding(.horizontal, 28)
+            .padding(.bottom, 36)
+        }
     }
 }

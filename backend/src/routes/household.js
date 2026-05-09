@@ -393,8 +393,17 @@ router.get('/transactions', async (req, res) => {
       return res.status(404).json({ error: 'No active household' });
     }
 
-    const { type, from, to, page = 1, limit = 50 } = req.query;
-    const where = { userId: { [Op.in]: memberIds } };
+    const { type, from, to, page = 1, limit = 50, userId: filterUserId } = req.query;
+    const where = {};
+
+    if (filterUserId) {
+      if (!memberIds.includes(filterUserId)) {
+        return res.status(403).json({ error: 'User is not in this household' });
+      }
+      where.userId = filterUserId;
+    } else {
+      where.userId = { [Op.in]: memberIds };
+    }
 
     if (type) where.type = type;
     if (from || to) {

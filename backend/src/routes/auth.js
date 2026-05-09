@@ -6,6 +6,7 @@ const sequelize = require('../config/database');
 const {
   User, HouseholdMember, Household, PasswordResetToken,
   Transaction, Budget, RecurringRule, CreditCard, Category,
+  SavingsGoal, CategoryRule,
 } = require('../models');
 const { generateToken, authMiddleware } = require('../middleware/auth');
 const { seedDefaultCategories } = require('../seeders/defaultCategories');
@@ -336,7 +337,9 @@ router.post('/reset-account', authMiddleware, async (req, res) => {
       }
     }
 
-    await Transaction.destroy({ where: { userId }, transaction: t });
+    await SavingsGoal.destroy({ where: { userId }, transaction: t });
+    await CategoryRule.destroy({ where: { userId }, transaction: t });
+    await Transaction.destroy({ where: { userId }, force: true, transaction: t });
     await Budget.destroy({ where: { userId }, transaction: t });
     await RecurringRule.destroy({ where: { userId }, transaction: t });
     await CreditCard.destroy({ where: { userId }, transaction: t });

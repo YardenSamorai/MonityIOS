@@ -232,6 +232,27 @@ struct SettingsView: View {
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .padding(.leading, 56)
                         }
+
+                        Divider().padding(.leading, 56)
+                        row(icon: "square.and.arrow.up.circle", color: BrandColor.accent, label: "export_reminder_monthly") {
+                            Toggle("", isOn: Binding(
+                                get: { notificationManager.exportReminderEnabled },
+                                set: { newValue in
+                                    if newValue {
+                                        Task {
+                                            let granted = await notificationManager.requestPermission()
+                                            if granted {
+                                                notificationManager.exportReminderEnabled = true
+                                            }
+                                        }
+                                    } else {
+                                        notificationManager.exportReminderEnabled = false
+                                    }
+                                }
+                            ))
+                            .labelsHidden()
+                            .tint(BrandColor.primary)
+                        }
                     }
 
                     settingsGroup(title: "household") {
@@ -246,6 +267,35 @@ struct SettingsView: View {
                         } label: {
                             row(icon: "person.2.fill", color: BrandColor.info, label: "household_settings") {
                                 trailingChevron(text: householdViewModel.hasHousehold ? (householdViewModel.household?.name ?? "") : L("household_not_set"))
+                            }
+                        }
+                        .buttonStyle(.plain)
+
+                        NavigationLink {
+                            HouseholdPermissionsInfoView()
+                        } label: {
+                            row(icon: "info.circle.fill", color: BrandColor.info, label: "household_permissions_link") {
+                                trailingChevron()
+                            }
+                        }
+                        .buttonStyle(.plain)
+                    }
+
+                    settingsGroup(title: "productivity") {
+                        NavigationLink {
+                            SavingsGoalsListView()
+                        } label: {
+                            row(icon: "target", color: BrandColor.primary, label: "savings_goals_title") {
+                                trailingChevron()
+                            }
+                        }
+                        .buttonStyle(.plain)
+
+                        NavigationLink {
+                            CategoryRulesListView()
+                        } label: {
+                            row(icon: "wand.and.stars", color: BrandColor.accent, label: "category_rules_title") {
+                                trailingChevron()
                             }
                         }
                         .buttonStyle(.plain)
@@ -289,6 +339,15 @@ struct SettingsView: View {
                         }
                         .buttonStyle(.plain)
                         .disabled(viewModel.isExporting)
+
+                        NavigationLink {
+                            PrivacyPolicyView()
+                        } label: {
+                            row(icon: "hand.raised.fill", color: BrandColor.primary, label: "privacy_policy_title") {
+                                trailingChevron()
+                            }
+                        }
+                        .buttonStyle(.plain)
                     }
 
                     Button {
@@ -432,6 +491,10 @@ struct SettingsView: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
+    }
+
+    private func trailingChevron() -> some View {
+        trailingChevron(text: "")
     }
 
     private func trailingChevron(text: String) -> some View {

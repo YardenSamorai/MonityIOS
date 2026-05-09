@@ -8,6 +8,7 @@
     "dev": "nodemon src/index.js"
   },
   "dependencies": {
+    "@sentry/node": "^9.47.1",
     "bcryptjs": "^2.4.3",
     "better-sqlite3": "^12.8.0",
     "cors": "^2.8.5",

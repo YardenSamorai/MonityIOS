@@ -48,6 +48,8 @@ const Transaction = sequelize.define('Transaction', {
     type: DataTypes.UUID,
     allowNull: true,
   },
+}, {
+  paranoid: true,
 });
 
 module.exports = Transaction;

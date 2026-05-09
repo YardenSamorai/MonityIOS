@@ -143,6 +143,19 @@ struct RecurringRuleCard: View {
                                 .foregroundStyle(.secondary)
                                 .lineLimit(1)
                         }
+
+                        HStack(spacing: 4) {
+                            Image(systemName: rule.type == .income ? "arrow.down.left.circle" : "arrow.up.right.circle")
+                                .font(.caption2.weight(.semibold))
+                                .foregroundStyle(.tertiary)
+                            Text(rule.type == .income ? LocalizedStringKey("recurring_income_date") : LocalizedStringKey("recurring_expense_date"))
+                                .font(.caption2.weight(.medium))
+                                .foregroundStyle(.secondary)
+                            Text(DateHelper.display(rule.startDate))
+                                .font(.caption2.weight(.semibold))
+                                .foregroundStyle(.secondary)
+                        }
+                        .padding(.top, 2)
                     }
 
                     Spacer()

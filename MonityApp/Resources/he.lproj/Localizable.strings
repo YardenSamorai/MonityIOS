@@ -163,6 +163,9 @@
 "frequency" = "תדירות";
 "daily" = "יומי";
 "start_date" = "תאריך התחלה";
+"recurring_income_date" = "תאריך הכנסה";
+"recurring_expense_date" = "תאריך הוצאה / חיוב";
+"recurring_start_date_hint" = "זה התאריך שבו כל מחזור נרשם. אם היום הזה כבר עבר החודש, הריצה הראשונה תהיה באותו יום בחודש הבא—בלי תנועות רטרואקטיביות.";
 "end_date" = "תאריך סיום";
 "active" = "פעיל";
 "paused" = "מושהה";
@@ -288,6 +291,9 @@
 "onb_finish" = "סיום והתחלה";
 "onb_skip" = "דלג";
 
+"onb_recurring_first_date_hint_income" = "בחרו את יום קבלת המשכורת. אם היום הזה כבר עבר החודש — המשכורת הראשונה תתוזמן לאותו יום בחודש הבא, בלי להוסיף רטרו, כדי שהיתרה תישאר נכונה.";
+"onb_recurring_first_date_hint_expense" = "בחרו מתי נספר כל חיוב. אם היום כבר עבר החודש — החיוב הראשון יהיה באותו יום בחודש הבא, בלי תנועות אחורה.";
+
 /* Appearance */
 "appearance" = "מראה";
 "appearance_light" = "בהיר";
@@ -315,7 +321,7 @@
 "notif_card_body" = "חיוב %@ בעוד %d ימים";
 "notif_recurring_title" = "מחר תנועה קבועה";
 "notif_recurring_body" = "%@ צפויה מחר — כדאי לוודא יתרה.";
-"notifications_intro" = "התראות חשובות לתקציב, כרטיסי אשראי ותנועות קבועות. בשעה שמוגדרת בתזכורת היומית, כאשר רלוונטי.";
+"notifications_intro" = "Monity יכול להזכיר על תקציבים, תאריכי חיוב בכרטיס, תנועות קבועות שמתקרבות, ותזכורת ייצוא חודשית (אופציונלית). ההתראות פעילות רק אם תפעילו אותן כאן. זמנים משתמשים בשעת התזכורת היומית כאשר רלוונטי. ניתן לשנות הרשאות בכל עת בהגדרות iOS.";
 "budget_alert_threshold_label" = "סף התראה";
 "card_reminder_days_label" = "ימים לפני חיוב";
 "recurring_reminder_toggle" = "יום לפני תנועה קבועה";
@@ -364,6 +370,8 @@
 "leave_household_message" = "לא תראה יותר את הנתונים המשותפים ממשק הבית הזה.";
 "leave_household_owner_message" = "כבעלים, עזיבה תפרק את משק הבית לכל החברים.";
 "household_no_transactions_message" = "תנועות משני בני הזוג יופיעו כאן";
+"household_txn_filter_label" = "פעילות לפי משתמש";
+"household_txn_filter_all" = "כולם";
 "household_load_error_title" = "לא ניתן לטעון את משק הבית";
 "household_load_error_message" = "בדקו את החיבור לרשת ונסו שוב. אם הבעיה נמשכת, התנתקו והתחברו מחדש.";
 "retry" = "נסה שוב";
@@ -381,3 +389,48 @@
 "ok" = "אישור";
 "done" = "סיום";
 "delete" = "מחיקה";
+"undo" = "בטל מחיקה";
+"restore" = "שחזר";
+"apply" = "החל";
+"got_it" = "הבנתי";
+"no_transaction_results" = "אין תנועות שמתאימות לסינון או לחיפוש.";
+"delete_moves_to_trash" = "הפריט עובר לסל. אפשר לשחזר ממסך הסל או ללחוץ ״בטל מחיקה״.";
+"transaction_undo_prompt" = "הועבר לסל.";
+"transaction_trash_title" = "סל מחיקות";
+"trash_empty_title" = "הסל ריק";
+"trash_empty_message" = "תנועות שנמחקו מופיעות כאן. החלק לשחזור או משוך לרענון.";
+"swipe_tip_title" = "החלקה על שורה";
+"swipe_tip_body" = "החלקה שמאלה מוחקת (לסל), ימינה לעריכה.";
+"filter_category_section" = "קטגוריה";
+"all_categories" = "כל הקטגוריות";
+"filter_from_date" = "מתאריך";
+"filter_to_date" = "עד תאריך";
+"transaction_filters_title" = "מסננים";
+"clear_filters" = "נקה מסננים";
+"onb_notifications_title" = "להישאר מסודרים";
+"onb_notifications_body" = "אפשר להפעיל התראות על תקציב, תזכורות חיוב ועוד. אפשר לכבות בהגדרות או ב־iOS.";
+"onb_notifications_enable" = "לאפשר התראות";
+"onb_notifications_skip" = "לא עכשיו";
+"export_reminder_monthly" = "תזכורת ייצוא חודשית";
+"notif_export_title" = "ייצוא נתוני Monity";
+"notif_export_body" = "תזכורת: כדאי לייצא תנועות מהגדרות ← נתונים לגיבוי.";
+"household_permissions_link" = "שיתוף במשק בית";
+"household_permissions_title" = "שיתוף במשק בית";
+"household_permissions_body" = "• עד שניים במשק בית פעיל (אתם + בן/בת זוג).\n• מוזמנים צריכים להתחבר עם אותו אימייל שאליו נשלחה ההזמנה.\n• שני החברים רואים סיכומים משותפים, רשימת תנועות משותפת וכרטיסים שמשויכים למשק הבית.\n• לכל משתמש יש חשבון פרטי; נתונים מחוץ למשק הבית נשארים נפרדים עד שצופים במסכי משק הבית.\n• רק הבעלים יכול לפרק את כל משק הבית; חבר יכול לעזוב בעצמו.\n• איפוס חשבון מוחק את הנתונים שלך ועשוי לפרק משק בית אם אתה הבעלים.";
+"privacy_policy_title" = "פרטיות (תקציר)";
+"privacy_policy_body" = "Monity שומר נתונים כדי לספק ניהול תקציב ומשק בית. האימייל והסיסמה משמשים להתחברות והזמנות. התראות (אופציונליות) עוברות בשירות ההתראות של Apple. ייצוא יוצר קובץ CSV במכשיר. השתמשו בסיסמה חזקה ונעלו את המכשיר. זהו תקציר; לייצור מלא יש לפנות לייעוץ משפטי.";
+"productivity" = "יעדים ואוטומציה";
+"savings_goals_title" = "יעדי חיסכון";
+"category_rules_title" = "כללי קטגוריה";
+"category_rules_explainer" = "בהוצאה ללא קטגוריה, נבדוק את ההערה מול המילים כאן (עדיפות גבוהה קודם).";
+"goal_add_title" = "יעד חדש";
+"goal_edit_title" = "עריכת יעד";
+"goal_name_placeholder" = "שם היעד";
+"goal_target_amount" = "יעד בסכום";
+"goal_current_saved" = "כבר חסכתי";
+"goal_has_deadline" = "תאריך יעד";
+"goal_deadline" = "תאריך יעד";
+"goal_of" = "מתוך";
+"rule_pattern_placeholder" = "מילה בהערה (למשל סופר)";
+"rule_add_title" = "כלל חדש";
+"rule_priority_label" = "עדיפות";

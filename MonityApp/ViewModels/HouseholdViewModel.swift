@@ -7,6 +7,8 @@ final class HouseholdViewModel: ObservableObject {
     @Published var summary: HouseholdSummary?
     @Published var recentTransactions: [Transaction] = []
     @Published var creditCards: [CreditCard] = []
+    /// `nil` = show transactions for all household members.
+    @Published var transactionFilterUserId: String?
 
     @Published var isLoading = false
     @Published var isCreating = false
@@ -41,7 +43,7 @@ final class HouseholdViewModel: ObservableObject {
 
         if hasHousehold {
             async let summaryTask = loadSummary()
-            async let transactionsTask = loadTransactions()
+            async let transactionsTask = reloadTransactions()
             async let cardsTask = loadCreditCards()
             let _ = await (summaryTask, transactionsTask, cardsTask)
         }
@@ -155,6 +157,11 @@ final class HouseholdViewModel: ObservableObject {
         }
     }
 
+    func setTransactionMemberFilter(_ userId: String?) async {
+        transactionFilterUserId = userId
+        await reloadTransactions()
+    }
+
     func leaveHousehold() async {
         do {
             struct SuccessResponse: Codable { let success: Bool }
@@ -166,6 +173,7 @@ final class HouseholdViewModel: ObservableObject {
             summary = nil
             recentTransactions = []
             creditCards = []
+            transactionFilterUserId = nil
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -187,11 +195,17 @@ final class HouseholdViewModel: ObservableObject {
         }
     }
 
-    private func loadTransactions() async {
+    func reloadTransactions() async {
         do {
+            var items = [
+                URLQueryItem(name: "limit", value: "60"),
+            ]
+            if let uid = transactionFilterUserId {
+                items.append(URLQueryItem(name: "userId", value: uid))
+            }
             let response: HouseholdTransactionsResponse = try await APIClient.shared.request(
                 endpoint: "/household/transactions",
-                queryItems: [URLQueryItem(name: "limit", value: "10")]
+                queryItems: items
             )
             recentTransactions = response.transactions
         } catch {

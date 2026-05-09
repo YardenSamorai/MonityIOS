@@ -4,6 +4,7 @@ const { v4: uuidv4 } = require('uuid');
 const sequelize = require('../config/database');
 const { Transaction, Category, CreditCard } = require('../models');
 const { authMiddleware } = require('../middleware/auth');
+const { applyCategoryRules } = require('../services/categoryRulesService');
 
 const router = express.Router();
 router.use(authMiddleware);
@@ -30,17 +31,31 @@ function safeInt(v, fallback, min, max) {
 
 router.get('/', async (req, res) => {
   try {
-    const { type, categoryId, from, to, page = 1, limit = 50 } = req.query;
-    const where = { userId: req.userId };
+    const { type, categoryId, from, to, q, page = 1, limit = 50 } = req.query;
 
-    if (type) where.type = type;
-    if (categoryId) where.categoryId = categoryId;
-    if (req.query.creditCardId) where.creditCardId = req.query.creditCardId;
+    const baseUser = { userId: req.userId };
+    const parts = [baseUser];
+
+    if (type) parts.push({ type });
+    if (categoryId) parts.push({ categoryId });
+    if (req.query.creditCardId) parts.push({ creditCardId: req.query.creditCardId });
     if (from || to) {
-      where.date = {};
-      if (from) where.date[Op.gte] = from;
-      if (to) where.date[Op.lte] = to;
+      const dateClause = {};
+      if (from) dateClause[Op.gte] = from;
+      if (to) dateClause[Op.lte] = to;
+      parts.push({ date: dateClause });
     }
+    if (q && String(q).trim()) {
+      const qt = String(q).trim().replace(/\\/g, '').replace(/[%_]/g, '');
+      if (qt.length) {
+        parts.push(sequelize.where(
+          sequelize.fn('LOWER', sequelize.col('Transaction.note')),
+          { [Op.like]: `%${qt.toLowerCase()}%` },
+        ));
+      }
+    }
+
+    const where = parts.length === 1 ? parts[0] : { [Op.and]: parts };
 
     const safePage = safeInt(page, 1, 1);
     const safeLimit = safeInt(limit, 50, 1, 200);
@@ -63,6 +78,27 @@ router.get('/', async (req, res) => {
   }
 });
 
+router.get('/trash', async (req, res) => {
+  try {
+    const rows = await Transaction.findAll({
+      paranoid: false,
+      where: {
+        userId: req.userId,
+        deletedAt: { [Op.ne]: null },
+      },
+      include: [
+        { model: Category, attributes: ['id', 'name', 'nameHe', 'icon', 'color'] },
+        { model: CreditCard, attributes: ['id', 'name', 'lastFourDigits', 'color'] },
+      ],
+      order: [['deletedAt', 'DESC']],
+    });
+    res.json({ transactions: rows });
+  } catch (err) {
+    console.error('Trash list error:', err);
+    res.status(500).json({ error: 'Failed to fetch trash' });
+  }
+});
+
 router.get('/bank-running-balances', async (req, res) => {
   try {
     const [rows] = await sequelize.query(
@@ -72,7 +108,8 @@ router.get('/bank-running-balances', async (req, res) => {
        FROM transactions
        WHERE user_id = :userId
          AND credit_card_id IS NULL
-         AND COALESCE(is_billing_charge, 0) = 0`,
+         AND COALESCE(is_billing_charge, 0) = 0
+         AND deleted_at IS NULL`,
       { replacements: { userId: req.userId } },
     );
 
@@ -145,7 +182,9 @@ router.get('/summary', async (req, res) => {
 
 router.post('/', async (req, res) => {
   try {
-    const { amount, currency, type, note, date, categoryId, creditCardId, installments } = req.body;
+    let { amount, currency, type, note, date, categoryId, creditCardId, installments } = req.body;
+
+    categoryId = await applyCategoryRules(req.userId, note, categoryId);
 
     const numericAmount = Number(amount);
     if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
@@ -312,6 +351,29 @@ router.put('/:id', async (req, res) => {
   } catch (err) {
     console.error('Update transaction error:', err);
     res.status(500).json({ error: 'Failed to update transaction' });
+  }
+});
+
+router.post('/:id/restore', async (req, res) => {
+  try {
+    const transaction = await Transaction.findOne({
+      where: { id: req.params.id, userId: req.userId },
+      paranoid: false,
+    });
+    if (!transaction || !transaction.deletedAt) {
+      return res.status(404).json({ error: 'Transaction not found in trash' });
+    }
+    await transaction.restore();
+    const full = await Transaction.findByPk(transaction.id, {
+      include: [
+        { model: Category, attributes: ['id', 'name', 'nameHe', 'icon', 'color'] },
+        { model: CreditCard, attributes: ['id', 'name', 'lastFourDigits', 'color'] },
+      ],
+    });
+    res.json({ transaction: full });
+  } catch (err) {
+    console.error('Restore transaction error:', err);
+    res.status(500).json({ error: 'Failed to restore transaction' });
   }
 });
 

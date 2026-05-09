@@ -2,6 +2,7 @@ const express = require('express');
 const { RecurringRule, Category, Transaction } = require('../models');
 const { authMiddleware } = require('../middleware/auth');
 const { processRecurringRules } = require('../services/recurringService');
+const { normalizeRecurringStartDate } = require('../services/recurringStartDateNormalize');
 
 const router = express.Router();
 router.use(authMiddleware);
@@ -43,12 +44,14 @@ router.post('/', async (req, res) => {
       if (!cat) return res.status(403).json({ error: 'Invalid category' });
     }
 
+    const normalizedStart = normalizeRecurringStartDate(frequency, startDate);
+
     const rule = await RecurringRule.create({
       amount: numericAmount,
       currency: currency || 'ILS',
       type,
       frequency,
-      startDate,
+      startDate: normalizedStart,
       endDate: endDate || null,
       categoryId,
       userId: req.userId,
@@ -90,6 +93,9 @@ router.put('/:id', async (req, res) => {
     fields.forEach((f) => {
       if (req.body[f] !== undefined) rule[f] = req.body[f];
     });
+    if (req.body.startDate !== undefined || req.body.frequency !== undefined) {
+      rule.startDate = normalizeRecurringStartDate(rule.frequency, rule.startDate);
+    }
     await rule.save();
 
     const full = await RecurringRule.findByPk(rule.id, {

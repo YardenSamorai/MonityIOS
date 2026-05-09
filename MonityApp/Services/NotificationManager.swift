@@ -327,4 +327,50 @@ final class NotificationManager: ObservableObject {
             UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ids)
         }
     }
+
+    // MARK: - Monthly export reminder
+
+    var exportReminderEnabled: Bool {
+        get { UserDefaults.standard.bool(forKey: "export_reminder_monthly_enabled") }
+        set {
+            UserDefaults.standard.set(newValue, forKey: "export_reminder_monthly_enabled")
+            if newValue {
+                Task { await scheduleMonthlyExportReminderIfAllowed() }
+            } else {
+                cancelMonthlyExportReminder()
+            }
+        }
+    }
+
+    private func scheduleMonthlyExportReminderIfAllowed() async {
+        await checkAuthorization()
+        guard isAuthorized else { return }
+        cancelMonthlyExportReminder()
+
+        let content = UNMutableNotificationContent()
+        content.title = L("notif_export_title")
+        content.body = L("notif_export_body")
+        content.sound = .default
+
+        var components = DateComponents()
+        components.day = 1
+        components.hour = 10
+        components.minute = 30
+
+        let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: true)
+        let request = UNNotificationRequest(
+            identifier: "monthly_export_reminder",
+            content: content,
+            trigger: trigger
+        )
+        do {
+            try await UNUserNotificationCenter.current().add(request)
+        } catch {
+            print("Monthly export reminder error: \(error)")
+        }
+    }
+
+    func cancelMonthlyExportReminder() {
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ["monthly_export_reminder"])
+    }
 }

@@ -163,6 +163,9 @@
 "frequency" = "Frequency";
 "daily" = "Daily";
 "start_date" = "Start Date";
+"recurring_income_date" = "Income date";
+"recurring_expense_date" = "Expense date";
+"recurring_start_date_hint" = "This is when each cycle is recorded. If that day already passed this month, the first run is the same day next month—nothing is added retroactively.";
 "end_date" = "End Date";
 "active" = "Active";
 "paused" = "Paused";
@@ -288,6 +291,9 @@
 "onb_finish" = "Finish & Start";
 "onb_skip" = "Skip";
 
+"onb_recurring_first_date_hint_income" = "Choose your pay day. If that day already passed this month, your first salary is scheduled for the same day next month—your balance stays accurate until then.";
+"onb_recurring_first_date_hint_expense" = "Choose when each charge applies. If that day already passed this month, the first charge is the same day next month—no backdated debits.";
+
 /* Appearance */
 "appearance" = "Appearance";
 "appearance_light" = "Light";
@@ -315,7 +321,7 @@
 "notif_card_body" = "%@ billing is due in %d days";
 "notif_recurring_title" = "Recurring payment tomorrow";
 "notif_recurring_body" = "%@ is scheduled for tomorrow — check your balance.";
-"notifications_intro" = "Important alerts for budgets, cards, and scheduled transactions. Time uses the daily reminder hour when applicable.";
+"notifications_intro" = "Monity can remind you about budgets, card billing, recurring due dates, and an optional monthly export reminder. The app only alerts you when you turn these on. Time fields use your daily reminder hour where relevant. You can change permissions anytime in iOS Settings.";
 "budget_alert_threshold_label" = "Alert threshold";
 "card_reminder_days_label" = "Days before billing";
 "recurring_reminder_toggle" = "Day-before recurring";
@@ -364,6 +370,9 @@
 "leave_household_message" = "You will no longer see shared data from this household.";
 "leave_household_owner_message" = "As the owner, leaving will dissolve the household for all members.";
 "household_no_transactions_message" = "Transactions from both partners will appear here";
+"household_txn_filter_label" = "Activity by person";
+"household_txn_filter_all" = "Everyone";
+
 "household_load_error_title" = "Couldn't load household";
 "household_load_error_message" = "Check your connection and try again. If the problem continues, sign out and back in.";
 "retry" = "Try again";
@@ -381,3 +390,48 @@
 "ok" = "OK";
 "done" = "Done";
 "delete" = "Delete";
+"undo" = "Undo";
+"restore" = "Restore";
+"apply" = "Apply";
+"got_it" = "Got it";
+"no_transaction_results" = "No transactions match your filters or search.";
+"delete_moves_to_trash" = "Items go to Trash. Restore them from the Trash screen or use Undo.";
+"transaction_undo_prompt" = "Moved to trash.";
+"transaction_trash_title" = "Trash";
+"trash_empty_title" = "Trash is empty";
+"trash_empty_message" = "Deleted transactions appear here. Swipe to restore or pull to refresh.";
+"swipe_tip_title" = "Swipe rows";
+"swipe_tip_body" = "Swipe left to delete (goes to trash) or swipe right to edit.";
+"filter_category_section" = "Category";
+"all_categories" = "All categories";
+"filter_from_date" = "From date";
+"filter_to_date" = "To date";
+"transaction_filters_title" = "Filters";
+"clear_filters" = "Clear filters";
+"onb_notifications_title" = "Stay on track";
+"onb_notifications_body" = "Turn on notifications for budget alerts, billing reminders, and optional tips. You can disable them anytime in Settings or iOS.";
+"onb_notifications_enable" = "Allow notifications";
+"onb_notifications_skip" = "Not now";
+"export_reminder_monthly" = "Monthly export reminder";
+"notif_export_title" = "Export your Monity data";
+"notif_export_body" = "Reminder: export your transactions from Settings → Data for safekeeping.";
+"household_permissions_link" = "Household sharing";
+"household_permissions_title" = "Household sharing";
+"household_permissions_body" = "• Up to two active members per household (you + partner).\n• Invited users must sign in with the same email they were invited with.\n• Both members see shared household summaries, shared transactions list, and cards linked to the household.\n• Each user still has a private account; personal categories and data outside the household stay separate until you merge views in Household.\n• Only the owner can dissolve the whole household; members can leave on their own.\n• Deleting your account data (reset) removes your transactions and may dissolve the household if you are the owner.";
+"privacy_policy_title" = "Privacy overview";
+"privacy_policy_body" = "Monity stores your data to provide budgeting and household features. Email and credentials are used for login and invitations. Optional notifications use Apple’s notification service. Export creates a CSV on your device. For security, use a strong password and keep your device locked. This summary is informational; consult legal counsel for a full policy in production.";
+"productivity" = "Goals & automation";
+"savings_goals_title" = "Savings goals";
+"category_rules_title" = "Category rules";
+"category_rules_explainer" = "If a new expense has no category, we scan the note for these keywords (higher priority wins).";
+"goal_add_title" = "New goal";
+"goal_edit_title" = "Edit goal";
+"goal_name_placeholder" = "Goal name";
+"goal_target_amount" = "Target amount";
+"goal_current_saved" = "Saved so far";
+"goal_has_deadline" = "Target date";
+"goal_deadline" = "Target date";
+"goal_of" = "of";
+"rule_pattern_placeholder" = "Keyword in note (e.g. café)";
+"rule_add_title" = "New rule";
+"rule_priority_label" = "Priority";

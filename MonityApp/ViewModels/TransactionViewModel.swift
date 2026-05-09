@@ -9,16 +9,23 @@ final class TransactionViewModel: ObservableObject {
     @Published var searchText = ""
     @Published var filterType: Transaction.TransactionType?
     @Published var filterCategoryId: Int?
+    /// API `YYYY-MM-DD` or nil
+    @Published var filterDateFrom: String?
+    @Published var filterDateTo: String?
     @Published var totalPages = 1
     @Published var currentPage = 1
     /// Checking (bank) running balance after each transaction id; from `/transactions/bank-running-balances`.
     @Published private(set) var bankBalanceByTransactionId: [String: Double] = [:]
 
-    var filteredTransactions: [Transaction] {
-        guard !searchText.isEmpty else { return transactions }
-        return transactions.filter { t in
-            t.note.localizedCaseInsensitiveContains(searchText) ||
-            (t.category?.name ?? "").localizedCaseInsensitiveContains(searchText)
+    private var reloadTask: Task<Void, Never>?
+
+    var filteredTransactions: [Transaction] { transactions }
+
+    func scheduleDebouncedReload() {
+        reloadTask?.cancel()
+        reloadTask = Task {
+            try? await Task.sleep(nanoseconds: 400_000_000)
+            await loadTransactions(page: 1)
         }
     }
 
@@ -35,6 +42,16 @@ final class TransactionViewModel: ObservableObject {
         }
         if let catId = filterCategoryId {
             queryItems.append(URLQueryItem(name: "categoryId", value: "\(catId)"))
+        }
+        if let from = filterDateFrom, !from.isEmpty {
+            queryItems.append(URLQueryItem(name: "from", value: from))
+        }
+        if let to = filterDateTo, !to.isEmpty {
+            queryItems.append(URLQueryItem(name: "to", value: to))
+        }
+        let q = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !q.isEmpty {
+            queryItems.append(URLQueryItem(name: "q", value: q))
         }
 
         do {
@@ -133,13 +150,35 @@ final class TransactionViewModel: ObservableObject {
 
     func deleteTransaction(_ id: String) async {
         do {
-            let _: [String: Bool] = try await APIClient.shared.request(
+            struct DelOK: Codable { let success: Bool }
+            let _: DelOK = try await APIClient.shared.request(
                 endpoint: "/transactions/\(id)",
                 method: "DELETE"
             )
             transactions.removeAll { $0.id == id }
             DataChangeNotifier.post()
             await loadBankRunningBalances()
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func loadTrashTransactions() async throws -> [Transaction] {
+        let r: TrashListResponse = try await APIClient.shared.request(endpoint: "/transactions/trash")
+        return r.transactions
+    }
+
+    func restoreTransaction(_ id: String) async {
+        do {
+            let r: TransactionSingleResponse = try await APIClient.shared.request(
+                endpoint: "/transactions/\(id)/restore",
+                method: "POST"
+            )
+            if r.transaction != nil {
+                await loadTransactions(page: 1)
+                DataChangeNotifier.post()
+                await loadBankRunningBalances()
+            }
         } catch {
             errorMessage = error.localizedDescription
         }

@@ -1,4 +1,19 @@
 require('dotenv').config();
+
+try {
+  if (process.env.SENTRY_DSN) {
+    // eslint-disable-next-line global-require
+    const Sentry = require('@sentry/node');
+    Sentry.init({
+      dsn: process.env.SENTRY_DSN,
+      environment: process.env.NODE_ENV || 'development',
+    });
+    console.log('Sentry error monitoring enabled');
+  }
+} catch (e) {
+  console.warn('Sentry init skipped:', e.message);
+}
+
 const express = require('express');
 const cors = require('cors');
 const sequelize = require('./config/database');
@@ -13,6 +28,8 @@ const exportRoutes = require('./routes/export');
 const currencyRoutes = require('./routes/currencies');
 const creditCardRoutes = require('./routes/creditCards');
 const householdRoutes = require('./routes/household');
+const goalsRoutes = require('./routes/goals');
+const categoryRulesRoutes = require('./routes/categoryRules');
 const { startRecurringJob } = require('./services/recurringService');
 
 const app = express();
@@ -45,9 +62,17 @@ app.use('/api/export', exportRoutes);
 app.use('/api/currencies', currencyRoutes);
 app.use('/api/credit-cards', creditCardRoutes);
 app.use('/api/household', householdRoutes);
+app.use('/api/goals', goalsRoutes);
+app.use('/api/category-rules', categoryRulesRoutes);
 
 app.use((err, _req, res, _next) => {
   console.error(err.stack);
+  if (process.env.SENTRY_DSN) {
+    try {
+      // eslint-disable-next-line global-require
+      require('@sentry/node').captureException(err);
+    } catch (_) {}
+  }
   res.status(500).json({ error: 'Internal server error' });
 });
 
