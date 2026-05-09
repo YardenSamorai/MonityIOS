@@ -11,6 +11,8 @@ final class TransactionViewModel: ObservableObject {
     @Published var filterCategoryId: Int?
     @Published var totalPages = 1
     @Published var currentPage = 1
+    /// Checking (bank) running balance after each transaction id; from `/transactions/bank-running-balances`.
+    @Published private(set) var bankBalanceByTransactionId: [String: Double] = [:]
 
     var filteredTransactions: [Transaction] {
         guard !searchText.isEmpty else { return transactions }
@@ -47,11 +49,75 @@ final class TransactionViewModel: ObservableObject {
             }
             totalPages = response.pages
             currentPage = response.page
+            await loadBankRunningBalances()
         } catch {
             errorMessage = error.localizedDescription
         }
 
         isLoading = false
+    }
+
+    func loadBankRunningBalances() async {
+        do {
+            let response: BankRunningBalancesResponse = try await APIClient.shared.request(
+                endpoint: "/transactions/bank-running-balances"
+            )
+            bankBalanceByTransactionId = response.balances
+        } catch let error as APIError {
+            if error.statusCode == 404 {
+                // Older deployed API without this route — compute on device.
+                await computeBankRunningBalancesLocally()
+            } else {
+                print("Bank running balances error: \(error)")
+            }
+        } catch {
+            print("Bank running balances error: \(error)")
+        }
+    }
+
+    /// Same rules as backend: bank-only rows, exclude billing double-count lines. Used when `/bank-running-balances` is missing (e.g. not deployed yet).
+    private func computeBankRunningBalancesLocally() async {
+        var collected: [Transaction] = []
+        var page = 1
+        let limit = 200
+
+        while page <= 50 {
+            do {
+                let r: TransactionListResponse = try await APIClient.shared.request(
+                    endpoint: "/transactions",
+                    queryItems: [
+                        URLQueryItem(name: "page", value: "\(page)"),
+                        URLQueryItem(name: "limit", value: "\(limit)"),
+                    ]
+                )
+                collected.append(contentsOf: r.transactions)
+                if page >= r.pages || r.transactions.isEmpty { break }
+                page += 1
+            } catch {
+                print("Local bank running balances: fetch error \(error)")
+                return
+            }
+        }
+
+        let bankLedger = collected.filter { tx in
+            tx.creditCardId == nil && !(tx.isBillingCharge == true)
+        }
+        let sorted = bankLedger.sorted { a, b in
+            if a.date != b.date { return a.date < b.date }
+            let ac = a.createdAt ?? ""
+            let bc = b.createdAt ?? ""
+            if ac != bc { return ac < bc }
+            return a.id < b.id
+        }
+
+        var running = 0.0
+        var map: [String: Double] = [:]
+        for t in sorted {
+            let delta = t.type == .income ? t.amount : -t.amount
+            running += delta
+            map[t.id] = running
+        }
+        bankBalanceByTransactionId = map
     }
 
     func loadCategories() async {
@@ -73,6 +139,7 @@ final class TransactionViewModel: ObservableObject {
             )
             transactions.removeAll { $0.id == id }
             DataChangeNotifier.post()
+            await loadBankRunningBalances()
         } catch {
             errorMessage = error.localizedDescription
         }

@@ -20,74 +20,77 @@ struct TransactionListView: View {
                         action: { showAddTransaction = true }
                     )
                 } else {
-                    ScrollView {
-                        VStack(spacing: 8) {
-                            FilterPills(filterType: $viewModel.filterType) {
-                                Task { await viewModel.loadTransactions() }
-                            }
-                            .padding(.bottom, 4)
+                    VStack(spacing: 0) {
+                        FilterPills(filterType: $viewModel.filterType) {
+                            Task { await viewModel.loadTransactions() }
+                        }
+                        .padding(.horizontal, Spacing.screenHorizontal)
+                        .padding(.top, 8)
+                        .padding(.bottom, 8)
 
+                        List {
                             ForEach(groupedByDate, id: \.0) { dateString, transactions in
-                                VStack(alignment: .leading, spacing: 8) {
+                                Section {
+                                    ForEach(transactions) { txn in
+                                        GlassSurface(cornerRadius: Radius.md, padding: 0, elevation: .flat) {
+                                            TransactionRowView(
+                                                transaction: txn,
+                                                bankBalanceAfter: viewModel.bankBalanceByTransactionId[txn.id],
+                                                displayCurrency: AuthService.shared.currentUser?.preferredCurrency
+                                            )
+                                                .padding(.horizontal, 14)
+                                                .padding(.vertical, 12)
+                                        }
+                                        .contentShape(Rectangle())
+                                        .onTapGesture {
+                                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                            editingTransaction = txn
+                                        }
+                                        .listRowInsets(EdgeInsets(top: 4, leading: Spacing.screenHorizontal, bottom: 4, trailing: Spacing.screenHorizontal))
+                                        .listRowSeparator(.hidden)
+                                        .listRowBackground(Color.clear)
+                                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                            Button(role: .destructive) {
+                                                deletingTransaction = txn
+                                            } label: {
+                                                Label("delete", systemImage: "trash")
+                                            }
+                                        }
+                                        .swipeActions(edge: .leading, allowsFullSwipe: true) {
+                                            Button {
+                                                editingTransaction = txn
+                                            } label: {
+                                                Label("edit", systemImage: "pencil")
+                                            }
+                                            .tint(BrandColor.primary)
+                                        }
+                                    }
+                                } header: {
                                     Text(formatGroupDate(dateString))
                                         .font(AppFont.label)
                                         .foregroundStyle(.secondary)
                                         .textCase(.uppercase)
                                         .tracking(0.5)
-                                        .padding(.leading, 4)
-                                        .padding(.top, 4)
-
-                                    GlassSurface(padding: 0) {
-                                        VStack(spacing: 0) {
-                                            ForEach(Array(transactions.enumerated()), id: \.element.id) { idx, txn in
-                                                Button {
-                                                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                                                    editingTransaction = txn
-                                                } label: {
-                                                    TransactionRowView(transaction: txn)
-                                                        .padding(.horizontal, 14)
-                                                        .padding(.vertical, 12)
-                                                }
-                                                .buttonStyle(.plain)
-                                                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                                                    Button(role: .destructive) {
-                                                        deletingTransaction = txn
-                                                    } label: {
-                                                        Label("delete", systemImage: "trash")
-                                                    }
-                                                }
-                                                .swipeActions(edge: .leading, allowsFullSwipe: true) {
-                                                    Button {
-                                                        editingTransaction = txn
-                                                    } label: {
-                                                        Label("edit", systemImage: "pencil")
-                                                    }
-                                                    .tint(BrandColor.primary)
-                                                }
-
-                                                if idx < transactions.count - 1 {
-                                                    Divider().padding(.leading, 64)
-                                                }
-                                            }
-                                        }
-                                    }
+                                        .frame(maxWidth: .infinity, alignment: .leading)
                                 }
                             }
 
                             if viewModel.currentPage < viewModel.totalPages {
-                                ProgressView()
-                                    .padding(24)
-                                    .frame(maxWidth: .infinity)
-                                    .onAppear {
-                                        Task { await viewModel.loadTransactions(page: viewModel.currentPage + 1) }
-                                    }
+                                Section {
+                                    ProgressView()
+                                        .frame(maxWidth: .infinity)
+                                        .listRowBackground(Color.clear)
+                                        .onAppear {
+                                            Task { await viewModel.loadTransactions(page: viewModel.currentPage + 1) }
+                                        }
+                                }
                             }
                         }
-                        .padding(.horizontal, Spacing.screenHorizontal)
-                        .padding(.top, 8)
-                        .padding(.bottom, 110)
+                        .listStyle(.plain)
+                        .scrollContentBackground(.hidden)
+                        .refreshable { await viewModel.loadTransactions() }
+                        .padding(.bottom, 100)
                     }
-                    .refreshable { await viewModel.loadTransactions() }
                 }
             }
             .searchable(text: $viewModel.searchText, prompt: Text("search_transactions"))

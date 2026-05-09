@@ -2,6 +2,9 @@ import SwiftUI
 
 struct TransactionRowView: View {
     let transaction: Transaction
+    /// Running checking-account balance after this row, when this transaction hits the bank ledger.
+    var bankBalanceAfter: Double? = nil
+    var displayCurrency: String? = nil
 
     var body: some View {
         HStack(spacing: 12) {
@@ -38,6 +41,18 @@ struct TransactionRowView: View {
                     Text(DateHelper.display(transaction.date))
                         .font(AppFont.caption)
                         .foregroundStyle(.secondary)
+                }
+
+                if let bal = bankBalanceAfter {
+                    Text(
+                        String(
+                            format: L("transaction_bank_balance_after_format"),
+                            CurrencyHelper.format(bal, currency: displayCurrency ?? transaction.currency)
+                        )
+                    )
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundStyle(.tertiary)
+                    .lineLimit(1)
                 }
             }
 

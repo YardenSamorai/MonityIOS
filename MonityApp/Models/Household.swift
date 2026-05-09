@@ -28,8 +28,13 @@ struct HouseholdMember: Codable, Identifiable {
 struct Household: Codable, Identifiable {
     let id: String
     var name: String
-    let createdBy: String
+    /// Present when API includes `createdBy` (household owner). Older rows may omit it until sync.
+    let createdBy: String?
     var HouseholdMembers: [HouseholdMember]?
+
+    private var ownerId: String {
+        createdBy ?? ""
+    }
 
     var activeMembers: [HouseholdMember] {
         HouseholdMembers?.filter { $0.isActive } ?? []
@@ -40,7 +45,10 @@ struct Household: Codable, Identifiable {
     }
 
     var partnerName: String? {
-        activeMembers.first { $0.userId != createdBy }?.displayName
+        activeMembers.first { member in
+            guard let uid = member.userId else { return false }
+            return uid != ownerId
+        }?.displayName
     }
 }
 

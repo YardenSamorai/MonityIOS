@@ -29,6 +29,21 @@ final class NotificationManager: ObservableObject {
         set {
             UserDefaults.standard.set(newValue, forKey: "daily_reminder_hour")
             if dailyReminderEnabled { scheduleDailyReminder() }
+            Task { await refreshCardAndRecurringFromServer() }
+        }
+    }
+
+    /// When spending reaches this % of the budget limit, a one-time alert is sent (per category per month).
+    var budgetAlertThresholdPercent: Int {
+        get {
+            let v = UserDefaults.standard.integer(forKey: "budget_alert_threshold_pct")
+            if v == 0 { return 80 }
+            if [80, 90, 100].contains(v) { return v }
+            return 80
+        }
+        set {
+            let clamped = min(100, max(50, newValue))
+            UserDefaults.standard.set(clamped, forKey: "budget_alert_threshold_pct")
         }
     }
 
@@ -37,11 +52,41 @@ final class NotificationManager: ObservableObject {
         set { UserDefaults.standard.set(newValue, forKey: "budget_alerts_enabled") }
     }
 
+    /// Days before the billing date to remind (1 = day before, 2 = two days before, …).
+    var cardReminderDaysBefore: Int {
+        get {
+            let v = UserDefaults.standard.integer(forKey: "card_reminder_days_before")
+            if v == 0 { return 2 }
+            return min(7, max(1, v))
+        }
+        set {
+            UserDefaults.standard.set(min(7, max(1, newValue)), forKey: "card_reminder_days_before")
+            Task { await refreshCardAndRecurringFromServer() }
+        }
+    }
+
     var cardReminderEnabled: Bool {
         get { UserDefaults.standard.bool(forKey: "card_reminder_enabled") }
         set {
             UserDefaults.standard.set(newValue, forKey: "card_reminder_enabled")
-            if !newValue { cancelCardReminders() }
+            if newValue {
+                Task { await refreshCardAndRecurringFromServer() }
+            } else {
+                cancelCardReminders()
+            }
+        }
+    }
+
+    /// Notify the calendar day before a recurring income/expense is due.
+    var recurringDueReminderEnabled: Bool {
+        get { UserDefaults.standard.bool(forKey: "recurring_due_reminder_enabled") }
+        set {
+            UserDefaults.standard.set(newValue, forKey: "recurring_due_reminder_enabled")
+            if newValue {
+                Task { await refreshCardAndRecurringFromServer() }
+            } else {
+                cancelRecurringDueReminders()
+            }
         }
     }
 
@@ -64,6 +109,34 @@ final class NotificationManager: ObservableObject {
     func checkAuthorization() async {
         let settings = await UNUserNotificationCenter.current().notificationSettings()
         isAuthorized = settings.authorizationStatus == .authorized
+    }
+
+    /// Reschedules credit-card and recurring notifications from the server (after toggles or time changes).
+    func refreshCardAndRecurringFromServer() async {
+        await checkAuthorization()
+        guard isAuthorized else { return }
+
+        if cardReminderEnabled {
+            do {
+                let c: CreditCardListResponse = try await APIClient.shared.request(endpoint: "/credit-cards")
+                scheduleCardReminders(cards: c.creditCards.filter { $0.isActive })
+            } catch {
+                print("Card notification refresh error: \(error)")
+            }
+        } else {
+            cancelCardReminders()
+        }
+
+        if recurringDueReminderEnabled {
+            do {
+                let r: RecurringListResponse = try await APIClient.shared.request(endpoint: "/recurring")
+                scheduleRecurringDueReminders(rules: r.recurringRules.filter { $0.isActive })
+            } catch {
+                print("Recurring notification refresh error: \(error)")
+            }
+        } else {
+            cancelRecurringDueReminders()
+        }
     }
 
     // MARK: - Daily Reminder
@@ -95,17 +168,19 @@ final class NotificationManager: ObservableObject {
     func checkBudgetAlerts(budgets: [BudgetStatus]) {
         guard budgetAlertsEnabled else { return }
 
+        let threshold = Double(budgetAlertThresholdPercent) / 100.0
         for budget in budgets {
             guard budget.limitAmount > 0 else { continue }
             let usage = budget.spent / budget.limitAmount
-            if usage >= 0.8 {
-                sendBudgetAlert(budget: budget, usage: usage)
+            if usage >= threshold {
+                sendBudgetAlert(budget: budget, usage: usage, thresholdPercent: budgetAlertThresholdPercent)
             }
         }
     }
 
-    private func sendBudgetAlert(budget: BudgetStatus, usage: Double) {
-        let alertKey = "budget_alert_\(budget.id)_\(DateHelper.currentMonthRange().from)"
+    private func sendBudgetAlert(budget: BudgetStatus, usage: Double, thresholdPercent: Int) {
+        let monthlyKey = DateHelper.currentMonthRange().from
+        let alertKey = "budget_alert_\(budget.id)_\(monthlyKey)_t\(thresholdPercent)"
         guard !UserDefaults.standard.bool(forKey: alertKey) else { return }
 
         let content = UNMutableNotificationContent()
@@ -116,7 +191,7 @@ final class NotificationManager: ObservableObject {
         content.sound = .default
 
         let request = UNNotificationRequest(
-            identifier: "budget_\(budget.id)",
+            identifier: "budget_\(budget.id)_\(thresholdPercent)",
             content: content,
             trigger: nil
         )
@@ -128,25 +203,37 @@ final class NotificationManager: ObservableObject {
 
     func scheduleCardReminders(cards: [CreditCard]) {
         guard cardReminderEnabled else { return }
-        cancelCardReminders()
 
+        UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
+            let cardIDs = requests.filter { $0.identifier.hasPrefix("card_") }.map(\.identifier)
+            UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: cardIDs)
+
+            Task { @MainActor in
+                self.addCardNotificationRequests(cards: cards)
+            }
+        }
+    }
+
+    private func addCardNotificationRequests(cards: [CreditCard]) {
         let calendar = Calendar.current
         let now = Date()
+        let daysBefore = cardReminderDaysBefore
+        let hour = dailyReminderHour
 
         for card in cards {
             var billing = nextBillingDate(billingDay: card.billingDay, from: now, calendar: calendar)
             for offset in 0..<3 {
                 guard let billingDate = billing,
-                      let reminderDate = calendar.date(byAdding: .day, value: -2, to: billingDate)
+                      let reminderDate = calendar.date(byAdding: .day, value: -daysBefore, to: billingDate)
                 else { continue }
 
                 let content = UNMutableNotificationContent()
                 content.title = L("notif_card_title")
-                content.body = String(format: L("notif_card_body"), card.name)
+                content.body = String(format: L("notif_card_body"), card.name, cardReminderDaysBefore)
                 content.sound = .default
 
                 var components = calendar.dateComponents([.year, .month, .day], from: reminderDate)
-                components.hour = 10
+                components.hour = hour
                 components.minute = 0
 
                 let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
@@ -185,8 +272,59 @@ final class NotificationManager: ObservableObject {
 
     func cancelCardReminders() {
         UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
-            let cardIDs = requests.filter { $0.identifier.hasPrefix("card_") }.map { $0.identifier }
+            let cardIDs = requests.filter { $0.identifier.hasPrefix("card_") }.map(\.identifier)
             UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: cardIDs)
+        }
+    }
+
+    // MARK: - Recurring (day before due)
+
+    func scheduleRecurringDueReminders(rules: [RecurringRule]) {
+        guard recurringDueReminderEnabled else { return }
+
+        UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
+            let ids = requests.filter { $0.identifier.hasPrefix("recurring_") }.map(\.identifier)
+            UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ids)
+
+            Task { @MainActor in
+                self.addRecurringNotificationRequests(rules: rules)
+            }
+        }
+    }
+
+    private func addRecurringNotificationRequests(rules: [RecurringRule]) {
+        let cal = Calendar.current
+        let today = cal.startOfDay(for: Date())
+        let hour = dailyReminderHour
+
+        for rule in rules where rule.isActive {
+            guard let nextRaw = RecurringScheduleHelper.nextExecutionDate(for: rule) else { continue }
+            let nextDueStart = cal.startOfDay(for: nextRaw)
+            guard let reminderDay = cal.date(byAdding: .day, value: -1, to: nextDueStart) else { continue }
+            let reminderStart = cal.startOfDay(for: reminderDay)
+            if reminderStart < today { continue }
+
+            var comps = cal.dateComponents([.year, .month, .day], from: reminderStart)
+            comps.hour = hour
+            comps.minute = 0
+            guard let y = comps.year, let mo = comps.month, let d = comps.day else { continue }
+
+            let content = UNMutableNotificationContent()
+            content.title = L("notif_recurring_title")
+            let label = rule.note.isEmpty ? (rule.category?.localizedName ?? L("recurring_transactions")) : rule.note
+            content.body = String(format: L("notif_recurring_body"), label)
+            content.sound = .default
+
+            let trigger = UNCalendarNotificationTrigger(dateMatching: comps, repeats: false)
+            let id = "recurring_\(rule.id)_\(y)\(mo)\(d)"
+            UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: id, content: content, trigger: trigger))
+        }
+    }
+
+    func cancelRecurringDueReminders() {
+        UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
+            let ids = requests.filter { $0.identifier.hasPrefix("recurring_") }.map(\.identifier)
+            UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ids)
         }
     }
 }

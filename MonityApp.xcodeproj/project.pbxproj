@@ -55,6 +55,7 @@
 		DD0000000000000ACARD000A /* CreditCardDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD00000000000009CARD0009 /* CreditCardDetailView.swift */; };
 		E05FA461F276C48F7F7EC043 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 81BCDB0F6A8C757192C99420 /* Localizable.strings */; };
 		E64AA5CD8F4B8F4F0EFF5908 /* DateHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 912F28646DD6F6D538EB6C08 /* DateHelper.swift */; };
+		RR00000000000001SCH0001 /* RecurringScheduleHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = RR00000000000002SCH0002 /* RecurringScheduleHelper.swift */; };
 		EB839BA7702A2545218777E3 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A9D40F2657F1DAA68987FD5 /* LoginView.swift */; };
 		EE00000000000001BIOM0001 /* BiometricAuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE00000000000002BIOM0002 /* BiometricAuthManager.swift */; };
 		EE00000000000003SHRM0001 /* SharedDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE00000000000004SHRM0002 /* SharedDataManager.swift */; };
@@ -63,17 +64,17 @@
 		F955FE5A0F8A9389861B1A83 /* Category.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8E3754C54FA75465C5199F6 /* Category.swift */; };
 		FF00000000000001ASST0001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FF00000000000002ASST0002 /* Assets.xcassets */; };
 		FF30798542BAD547B4D000AD /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E276664F67E137FF8EB414A /* Constants.swift */; };
+		HH00000001HHBF0001 /* Household.swift in Sources */ = {isa = PBXBuildFile; fileRef = HH00000011HHRF0011 /* Household.swift */; };
+		HH00000002HHBF0002 /* HouseholdViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = HH00000012HHRF0012 /* HouseholdViewModel.swift */; };
+		HH00000003HHBF0003 /* HouseholdView.swift in Sources */ = {isa = PBXBuildFile; fileRef = HH00000013HHRF0013 /* HouseholdView.swift */; };
+		HH00000004HHBF0004 /* HouseholdSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = HH00000014HHRF0014 /* HouseholdSetupView.swift */; };
+		HH00000005HHBF0005 /* HouseholdSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = HH00000015HHRF0015 /* HouseholdSettingsView.swift */; };
 		WW00000011WDGT0011 /* MonityWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = WW00000001WDGT0001 /* MonityWidgetBundle.swift */; };
 		WW00000012WDGT0012 /* MonityBalanceWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = WW00000002WDGT0002 /* MonityBalanceWidget.swift */; };
 		WW00000013WDGT0013 /* MonitySummaryWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = WW00000003WDGT0003 /* MonitySummaryWidget.swift */; };
 		WW00000014WDGT0014 /* MonityLockScreenWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = WW00000004WDGT0004 /* MonityLockScreenWidget.swift */; };
 		WW00000015WDGT0015 /* SharedModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = WW00000005WDGT0005 /* SharedModels.swift */; };
 		WW00000081WDGT0081 /* MonityWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = WW00000020WDGT0020 /* MonityWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		HH00000001HHBF0001 /* Household.swift in Sources */ = {isa = PBXBuildFile; fileRef = HH00000011HHRF0011 /* Household.swift */; };
-		HH00000002HHBF0002 /* HouseholdViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = HH00000012HHRF0012 /* HouseholdViewModel.swift */; };
-		HH00000003HHBF0003 /* HouseholdView.swift in Sources */ = {isa = PBXBuildFile; fileRef = HH00000013HHRF0013 /* HouseholdView.swift */; };
-		HH00000004HHBF0004 /* HouseholdSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = HH00000014HHRF0014 /* HouseholdSetupView.swift */; };
-		HH00000005HHBF0005 /* HouseholdSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = HH00000015HHRF0015 /* HouseholdSettingsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -128,6 +129,7 @@
 		8BD8DF232CC2240F6087B1AA /* CurrencyTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrencyTextField.swift; sourceTree = "<group>"; };
 		8D2596BE0B2A5335BD3529D6 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		912F28646DD6F6D538EB6C08 /* DateHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateHelper.swift; sourceTree = "<group>"; };
+		RR00000000000002SCH0002 /* RecurringScheduleHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecurringScheduleHelper.swift; sourceTree = "<group>"; };
 		938C10ECA4B44E934583F45D /* LoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingView.swift; sourceTree = "<group>"; };
 		98E818A9A66AA6C387C961BD /* MonthlyBarChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonthlyBarChart.swift; sourceTree = "<group>"; };
 		9A9D40F2657F1DAA68987FD5 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
@@ -160,17 +162,17 @@
 		F1E32D2FD568B4367E80FAF2 /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
 		FEDA035CE48B50C1FB242C31 /* AddTransactionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddTransactionView.swift; sourceTree = "<group>"; };
 		FF00000000000002ASST0002 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		HH00000011HHRF0011 /* Household.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Household.swift; sourceTree = "<group>"; };
+		HH00000012HHRF0012 /* HouseholdViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HouseholdViewModel.swift; sourceTree = "<group>"; };
+		HH00000013HHRF0013 /* HouseholdView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HouseholdView.swift; sourceTree = "<group>"; };
+		HH00000014HHRF0014 /* HouseholdSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HouseholdSetupView.swift; sourceTree = "<group>"; };
+		HH00000015HHRF0015 /* HouseholdSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HouseholdSettingsView.swift; sourceTree = "<group>"; };
 		WW00000001WDGT0001 /* MonityWidgetBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonityWidgetBundle.swift; sourceTree = "<group>"; };
 		WW00000002WDGT0002 /* MonityBalanceWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonityBalanceWidget.swift; sourceTree = "<group>"; };
 		WW00000003WDGT0003 /* MonitySummaryWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonitySummaryWidget.swift; sourceTree = "<group>"; };
 		WW00000004WDGT0004 /* MonityLockScreenWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonityLockScreenWidget.swift; sourceTree = "<group>"; };
 		WW00000005WDGT0005 /* SharedModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedModels.swift; sourceTree = "<group>"; };
 		WW00000020WDGT0020 /* MonityWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = MonityWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
-		HH00000011HHRF0011 /* Household.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Household.swift; sourceTree = "<group>"; };
-		HH00000012HHRF0012 /* HouseholdViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HouseholdViewModel.swift; sourceTree = "<group>"; };
-		HH00000013HHRF0013 /* HouseholdView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HouseholdView.swift; sourceTree = "<group>"; };
-		HH00000014HHRF0014 /* HouseholdSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HouseholdSetupView.swift; sourceTree = "<group>"; };
-		HH00000015HHRF0015 /* HouseholdSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HouseholdSettingsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -210,6 +212,7 @@
 				BB00000000000004DSGN002 /* DesignComponents.swift */,
 				7C2F24F203634DDF3D8CAB5A /* CurrencyFormatter.swift */,
 				912F28646DD6F6D538EB6C08 /* DateHelper.swift */,
+				RR00000000000002SCH0002 /* RecurringScheduleHelper.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -366,16 +369,6 @@
 			path = Models;
 			sourceTree = "<group>";
 		};
-		HH00000020HHGR0020 /* Household */ = {
-			isa = PBXGroup;
-			children = (
-				HH00000013HHRF0013 /* HouseholdView.swift */,
-				HH00000014HHRF0014 /* HouseholdSetupView.swift */,
-				HH00000015HHRF0015 /* HouseholdSettingsView.swift */,
-			);
-			path = Household;
-			sourceTree = "<group>";
-		};
 		D701AEAB1385139377008053 /* Views */ = {
 			isa = PBXGroup;
 			children = (
@@ -420,6 +413,16 @@
 				81BCDB0F6A8C757192C99420 /* Localizable.strings */,
 			);
 			path = Resources;
+			sourceTree = "<group>";
+		};
+		HH00000020HHGR0020 /* Household */ = {
+			isa = PBXGroup;
+			children = (
+				HH00000013HHRF0013 /* HouseholdView.swift */,
+				HH00000014HHRF0014 /* HouseholdSetupView.swift */,
+				HH00000015HHRF0015 /* HouseholdSettingsView.swift */,
+			);
+			path = Household;
 			sourceTree = "<group>";
 		};
 		WW00000030WDGT0030 /* MonityWidget */ = {
@@ -541,6 +544,7 @@
 				BB00000000000003DSGN001 /* DesignComponents.swift in Sources */,
 				3870E9BF545ADED45A491B52 /* CurrencyFormatter.swift in Sources */,
 				E64AA5CD8F4B8F4F0EFF5908 /* DateHelper.swift in Sources */,
+				RR00000000000001SCH0001 /* RecurringScheduleHelper.swift in Sources */,
 				8D46D7C701E5C7E3811CC8A3 /* AuthViewModel.swift in Sources */,
 				473296B31C63060652C48646 /* BudgetViewModel.swift in Sources */,
 				719D7C8F66FD43A1CB07E261 /* ChartsViewModel.swift in Sources */,
@@ -628,7 +632,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = MonityApp/MonityApp.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = JC8ALTGZWS;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = MonityApp/Info.plist;
@@ -641,7 +645,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.monityIOS.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -684,7 +688,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = MonityApp/MonityApp.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = JC8ALTGZWS;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = MonityApp/Info.plist;
@@ -697,7 +701,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.monityIOS.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -734,7 +738,7 @@
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
 				CODE_SIGN_ENTITLEMENTS = MonityWidget/MonityWidget.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = JC8ALTGZWS;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = MonityWidget/Info.plist;
@@ -762,7 +766,7 @@
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
 				CODE_SIGN_ENTITLEMENTS = MonityWidget/MonityWidget.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = JC8ALTGZWS;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = MonityWidget/Info.plist;

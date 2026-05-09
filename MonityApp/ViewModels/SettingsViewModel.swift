@@ -37,6 +37,27 @@ final class SettingsViewModel: ObservableObject {
         }
     }
 
+    func resetAccountData() async {
+        errorMessage = nil
+        do {
+            struct ResetResponse: Codable { let success: Bool }
+            let _: ResetResponse = try await APIClient.shared.request(
+                endpoint: "/auth/reset-account",
+                method: "POST"
+            )
+            CurrencyHelper.clearCache()
+            DataChangeNotifier.post()
+        } catch let error as APIError {
+            if case .serverError(_, let msg) = error {
+                errorMessage = msg
+            } else {
+                errorMessage = error.localizedDescription
+            }
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
     func exportCSV() async {
         isExporting = true
         errorMessage = nil

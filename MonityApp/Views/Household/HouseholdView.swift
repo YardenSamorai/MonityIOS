@@ -1,29 +1,63 @@
 import SwiftUI
 
+/// Tab / More entry: owns its own view model.
 struct HouseholdView: View {
     @StateObject private var viewModel = HouseholdViewModel()
+
+    var body: some View {
+        HouseholdScreen(viewModel: viewModel)
+    }
+}
+
+/// Shared household UI without a nested `NavigationStack` (parent already provides one).
+struct HouseholdScreen: View {
+    @ObservedObject var viewModel: HouseholdViewModel
     @State private var showSetup = false
 
     var body: some View {
-        NavigationStack {
-            Group {
-                if viewModel.isLoading && !viewModel.hasHousehold {
-                    ProgressView()
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else if viewModel.hasHousehold {
-                    householdDashboard
-                } else {
-                    noHouseholdView
-                }
+        Group {
+            if viewModel.loadFailed && !viewModel.hasHousehold {
+                householdLoadErrorView
+            } else if viewModel.isLoading && !viewModel.hasHousehold {
+                ProgressView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if viewModel.hasHousehold {
+                householdDashboard
+            } else {
+                noHouseholdView
             }
-            .background(CanvasBackground())
-            .navigationTitle(L("household"))
-            .sheet(isPresented: $showSetup) {
-                HouseholdSetupView(viewModel: viewModel)
-            }
-            .refreshable { await viewModel.loadAll() }
-            .task { await viewModel.loadAll() }
         }
+        .background(CanvasBackground())
+        .navigationTitle(L("household"))
+        .sheet(isPresented: $showSetup) {
+            HouseholdSetupView(viewModel: viewModel)
+        }
+        .refreshable { await viewModel.loadAll() }
+        .task { await viewModel.loadAll() }
+    }
+
+    private var householdLoadErrorView: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "wifi.exclamationmark")
+                .font(.system(size: 40))
+                .foregroundStyle(.secondary)
+            Text("household_load_error_title")
+                .font(AppFont.titleS)
+            Text("household_load_error_message")
+                .font(AppFont.body)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 24)
+            Button {
+                Task { await viewModel.loadAll() }
+            } label: {
+                Text("retry")
+                    .font(.subheadline.weight(.semibold))
+            }
+            .buttonStyle(.borderedProminent)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding()
     }
 
     // MARK: - No Household

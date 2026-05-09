@@ -9,7 +9,25 @@ struct SettingsView: View {
     @StateObject private var notificationManager = NotificationManager.shared
     @StateObject private var householdViewModel = HouseholdViewModel()
     @State private var showLogoutAlert = false
+    @State private var showResetAccountConfirm = false
+    @State private var isResettingAccount = false
     @State private var reminderDate = Date()
+
+    @AppStorage("budget_alert_threshold_pct") private var budgetAlertThresholdStored = 80
+    @AppStorage("card_reminder_days_before") private var cardReminderDaysStored = 2
+    @AppStorage("recurring_due_reminder_enabled") private var recurringDueReminderStored = false
+
+    private var budgetThresholdPercent: Int {
+        let v = budgetAlertThresholdStored
+        if [80, 90, 100].contains(v) { return v }
+        return 80
+    }
+
+    private var cardDaysBeforeClamped: Int {
+        let v = cardReminderDaysStored
+        if v < 1 { return 2 }
+        return min(7, v)
+    }
 
     var body: some View {
         ZStack {
@@ -71,6 +89,12 @@ struct SettingsView: View {
                     }
 
                     settingsGroup(title: "notifications") {
+                        Text("notifications_intro")
+                            .font(AppFont.caption)
+                            .foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.bottom, 4)
+
                         row(icon: "bell.badge.fill", color: BrandColor.warning, label: "daily_reminder") {
                             Toggle("", isOn: Binding(
                                 get: { notificationManager.dailyReminderEnabled },
@@ -78,9 +102,14 @@ struct SettingsView: View {
                                     if newValue {
                                         Task {
                                             let granted = await notificationManager.requestPermission()
-                                            if granted { notificationManager.dailyReminderEnabled = true }
+                                            if granted {
+                                                notificationManager.dailyReminderEnabled = true
+                                                await notificationManager.refreshCardAndRecurringFromServer()
+                                            }
                                         }
-                                    } else { notificationManager.dailyReminderEnabled = false }
+                                    } else {
+                                        notificationManager.dailyReminderEnabled = false
+                                    }
                                 }
                             ))
                             .labelsHidden()
@@ -96,6 +125,7 @@ struct SettingsView: View {
                                     }
                             }
                         }
+
                         Divider().padding(.leading, 56)
                         row(icon: "exclamationmark.triangle.fill", color: BrandColor.expense, label: "budget_alerts") {
                             Toggle("", isOn: Binding(
@@ -106,12 +136,30 @@ struct SettingsView: View {
                                             let granted = await notificationManager.requestPermission()
                                             if granted { notificationManager.budgetAlertsEnabled = true }
                                         }
-                                    } else { notificationManager.budgetAlertsEnabled = false }
+                                    } else {
+                                        notificationManager.budgetAlertsEnabled = false
+                                    }
                                 }
                             ))
                             .labelsHidden()
                             .tint(BrandColor.primary)
                         }
+                        if notificationManager.budgetAlertsEnabled {
+                            Divider().padding(.leading, 56)
+                            row(icon: "percent", color: BrandColor.expense, label: "budget_alert_threshold_label") {
+                                Picker("", selection: Binding(
+                                    get: { budgetThresholdPercent },
+                                    set: { budgetAlertThresholdStored = $0 }
+                                )) {
+                                    Text("80%").tag(80)
+                                    Text("90%").tag(90)
+                                    Text("100%").tag(100)
+                                }
+                                .pickerStyle(.segmented)
+                                .frame(maxWidth: 260)
+                            }
+                        }
+
                         Divider().padding(.leading, 56)
                         row(icon: "creditcard.fill", color: BrandColor.info, label: "card_reminders") {
                             Toggle("", isOn: Binding(
@@ -120,22 +168,79 @@ struct SettingsView: View {
                                     if newValue {
                                         Task {
                                             let granted = await notificationManager.requestPermission()
-                                            if granted { notificationManager.cardReminderEnabled = true }
+                                            if granted {
+                                                notificationManager.cardReminderEnabled = true
+                                                await notificationManager.refreshCardAndRecurringFromServer()
+                                            }
                                         }
-                                    } else { notificationManager.cardReminderEnabled = false }
+                                    } else {
+                                        notificationManager.cardReminderEnabled = false
+                                    }
                                 }
                             ))
                             .labelsHidden()
                             .tint(BrandColor.primary)
                         }
+                        if notificationManager.cardReminderEnabled {
+                            Divider().padding(.leading, 56)
+                            row(icon: "calendar.badge.clock", color: BrandColor.info, label: "card_reminder_days_label") {
+                                Stepper(
+                                    value: Binding(
+                                        get: { cardDaysBeforeClamped },
+                                        set: { newVal in
+                                            cardReminderDaysStored = newVal
+                                            Task { await notificationManager.refreshCardAndRecurringFromServer() }
+                                        }
+                                    ),
+                                    in: 1...7
+                                ) {
+                                    Text("\(cardDaysBeforeClamped)")
+                                        .font(.subheadline.monospacedDigit())
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                        }
+
+                        Divider().padding(.leading, 56)
+                        row(icon: "arrow.triangle.2.circlepath", color: BrandColor.income, label: "recurring_reminder_toggle") {
+                            Toggle("", isOn: Binding(
+                                get: { recurringDueReminderStored },
+                                set: { newValue in
+                                    recurringDueReminderStored = newValue
+                                    if newValue {
+                                        Task {
+                                            let granted = await notificationManager.requestPermission()
+                                            if granted {
+                                                await notificationManager.refreshCardAndRecurringFromServer()
+                                            } else {
+                                                recurringDueReminderStored = false
+                                            }
+                                        }
+                                    } else {
+                                        notificationManager.cancelRecurringDueReminders()
+                                    }
+                                }
+                            ))
+                            .labelsHidden()
+                            .tint(BrandColor.primary)
+                        }
+                        if recurringDueReminderStored {
+                            Text("recurring_reminder_footnote")
+                                .font(AppFont.caption)
+                                .foregroundStyle(.secondary)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.leading, 56)
+                        }
                     }
 
                     settingsGroup(title: "household") {
                         NavigationLink {
-                            if householdViewModel.hasHousehold {
-                                HouseholdSettingsView(viewModel: householdViewModel)
-                            } else {
-                                HouseholdView()
+                            Group {
+                                if householdViewModel.hasHousehold {
+                                    HouseholdSettingsView(viewModel: householdViewModel)
+                                } else {
+                                    HouseholdScreen(viewModel: householdViewModel)
+                                }
                             }
                         } label: {
                             row(icon: "person.2.fill", color: BrandColor.info, label: "household_settings") {
@@ -143,6 +248,26 @@ struct SettingsView: View {
                             }
                         }
                         .buttonStyle(.plain)
+                    }
+
+                    settingsGroup(title: "reset_account_section") {
+                        Button {
+                            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                            showResetAccountConfirm = true
+                        } label: {
+                            row(icon: "exclamationmark.triangle.fill", color: BrandColor.expense, label: "reset_account") {
+                                if isResettingAccount {
+                                    ProgressView().scaleEffect(0.8)
+                                } else {
+                                    Image(systemName: "chevron.right")
+                                        .font(.caption2.weight(.bold))
+                                        .foregroundStyle(.tertiary)
+                                        .environment(\.layoutDirection, .leftToRight)
+                                }
+                            }
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(isResettingAccount)
                     }
 
                     settingsGroup(title: "data") {
@@ -189,6 +314,27 @@ struct SettingsView: View {
                 .padding(.top, 8)
                 .padding(.bottom, 110)
             }
+        }
+        .alert(L("reset_account_confirm_title"), isPresented: $showResetAccountConfirm) {
+            Button(L("cancel"), role: .cancel) {}
+            Button(L("reset_account_button"), role: .destructive) {
+                Task {
+                    isResettingAccount = true
+                    await viewModel.resetAccountData()
+                    isResettingAccount = false
+                    await householdViewModel.loadHousehold()
+                }
+            }
+        } message: {
+            Text(L("reset_account_confirm_message"))
+        }
+        .alert("error", isPresented: Binding(
+            get: { viewModel.errorMessage != nil },
+            set: { if !$0 { viewModel.errorMessage = nil } }
+        )) {
+            Button("ok", role: .cancel) { viewModel.errorMessage = nil }
+        } message: {
+            Text(viewModel.errorMessage ?? "")
         }
         .navigationTitle("settings")
         .alert("logout_confirm", isPresented: $showLogoutAlert) {

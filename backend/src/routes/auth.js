@@ -2,7 +2,11 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const { Op } = require('sequelize');
-const { User, HouseholdMember, PasswordResetToken } = require('../models');
+const sequelize = require('../config/database');
+const {
+  User, HouseholdMember, Household, PasswordResetToken,
+  Transaction, Budget, RecurringRule, CreditCard, Category,
+} = require('../models');
 const { generateToken, authMiddleware } = require('../middleware/auth');
 const { seedDefaultCategories } = require('../seeders/defaultCategories');
 const { sendOtpEmail } = require('../services/emailService');
@@ -310,6 +314,43 @@ router.get('/me', authMiddleware, async (req, res) => {
   } catch (err) {
     console.error('Me error:', err);
     res.status(500).json({ error: 'Failed to fetch user' });
+  }
+});
+
+router.post('/reset-account', authMiddleware, async (req, res) => {
+  const t = await sequelize.transaction();
+  try {
+    const userId = req.userId;
+
+    const membership = await HouseholdMember.findOne({
+      where: { userId, status: 'active' },
+      transaction: t,
+    });
+    if (membership) {
+      const householdId = membership.householdId;
+      if (membership.role === 'owner') {
+        await HouseholdMember.destroy({ where: { householdId }, transaction: t });
+        await Household.destroy({ where: { id: householdId }, transaction: t });
+      } else {
+        await membership.destroy({ transaction: t });
+      }
+    }
+
+    await Transaction.destroy({ where: { userId }, transaction: t });
+    await Budget.destroy({ where: { userId }, transaction: t });
+    await RecurringRule.destroy({ where: { userId }, transaction: t });
+    await CreditCard.destroy({ where: { userId }, transaction: t });
+    await Category.destroy({ where: { userId }, transaction: t });
+    await PasswordResetToken.destroy({ where: { userId }, transaction: t });
+
+    await t.commit();
+    await seedDefaultCategories(userId);
+
+    res.json({ success: true });
+  } catch (err) {
+    await t.rollback();
+    console.error('Reset account error:', err);
+    res.status(500).json({ error: 'Failed to reset account' });
   }
 });
 

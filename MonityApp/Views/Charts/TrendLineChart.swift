@@ -3,6 +3,19 @@ import Charts
 
 struct TrendLineChart: View {
     let data: [MonthlyData]
+    let currency: String
+
+    @State private var selectedMonth: String?
+
+    private func pointOpacity(for label: String) -> Double {
+        if selectedMonth == nil { return 1 }
+        return selectedMonth == label ? 1 : 0.35
+    }
+
+    private func areaOpacity(for label: String) -> Double {
+        if selectedMonth == nil { return 1 }
+        return selectedMonth == label ? 0.45 : 0.12
+    }
 
     var body: some View {
         GlassSurface {
@@ -18,6 +31,10 @@ struct TrendLineChart: View {
                     Text("spending_trend").font(AppFont.titleS)
                 }
 
+                Text("chart_tap_hint")
+                    .font(AppFont.caption)
+                    .foregroundStyle(.secondary)
+
                 Chart {
                     ForEach(data) { item in
                         AreaMark(
@@ -26,8 +43,12 @@ struct TrendLineChart: View {
                         )
                         .foregroundStyle(
                             LinearGradient(
-                                colors: [BrandColor.expense.opacity(0.3), BrandColor.expense.opacity(0.0)],
-                                startPoint: .top, endPoint: .bottom
+                                colors: [
+                                    BrandColor.expense.opacity(areaOpacity(for: item.label)),
+                                    BrandColor.expense.opacity(0),
+                                ],
+                                startPoint: .top,
+                                endPoint: .bottom
                             )
                         )
                         .interpolationMethod(.catmullRom)
@@ -45,10 +66,22 @@ struct TrendLineChart: View {
                             y: .value("Expense", item.expense)
                         )
                         .foregroundStyle(BrandColor.expense)
-                        .symbolSize(35)
+                        .symbolSize(selectedMonth == item.label ? 140 : 40)
+                        .opacity(pointOpacity(for: item.label))
                     }
                 }
+                .chartXSelection(value: $selectedMonth)
                 .frame(height: 180)
+
+                if let sel = selectedMonth, let item = data.first(where: { $0.label == sel }) {
+                    ChartTapExplainer(
+                        title: String(format: L("chart_trend_selection_title"), sel),
+                        message: String(
+                            format: L("chart_trend_selection_body"),
+                            CurrencyHelper.format(item.expense, currency: currency)
+                        )
+                    )
+                }
             }
         }
     }

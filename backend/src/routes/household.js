@@ -291,6 +291,12 @@ router.delete('/leave', async (req, res) => {
 
 router.get('/summary', async (req, res) => {
   try {
+    try {
+      const { processRecurringRules, processCreditCardBilling } = require('../services/recurringService');
+      processRecurringRules().catch(() => {});
+      processCreditCardBilling().catch(() => {});
+    } catch (_) {}
+
     const memberIds = await getHouseholdMemberIds(req.userId);
     if (!memberIds) {
       return res.status(404).json({ error: 'No active household' });

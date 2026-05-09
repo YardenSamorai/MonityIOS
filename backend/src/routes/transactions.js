@@ -63,11 +63,39 @@ router.get('/', async (req, res) => {
   }
 });
 
+router.get('/bank-running-balances', async (req, res) => {
+  try {
+    const [rows] = await sequelize.query(
+      `SELECT id,
+        SUM(CASE WHEN type = 'income' THEN CAST(amount AS REAL) ELSE -CAST(amount AS REAL) END)
+          OVER (ORDER BY date ASC, created_at ASC ROWS UNBOUNDED PRECEDING) AS balance_after
+       FROM transactions
+       WHERE user_id = :userId
+         AND credit_card_id IS NULL
+         AND COALESCE(is_billing_charge, 0) = 0`,
+      { replacements: { userId: req.userId } },
+    );
+
+    const balances = {};
+    for (const row of rows) {
+      const v = row.balance_after;
+      balances[row.id] = typeof v === 'number' ? v : parseFloat(String(v), 10);
+    }
+    res.json({ balances });
+  } catch (err) {
+    console.error('Bank running balances error:', err);
+    res.status(500).json({ error: 'Failed to compute running balances' });
+  }
+});
+
 router.get('/summary', async (req, res) => {
   try {
     try {
-      const { processRecurringRules } = require('../services/recurringService');
+      const { processRecurringRules, processCreditCardBilling } = require('../services/recurringService');
+      // Catch up recurring income/expense and card billing when the app opens the dashboard
+      // (cron also runs daily; this covers cold starts / timezone edge cases).
       processRecurringRules().catch(() => {});
+      processCreditCardBilling().catch(() => {});
     } catch (_) {}
 
     const { from, to } = req.query;

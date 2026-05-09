@@ -25,6 +25,10 @@ struct CategoryPieChart: View {
                     }
                 }
 
+                Text("chart_pie_hint")
+                    .font(AppFont.caption)
+                    .foregroundStyle(.secondary)
+
                 ZStack {
                     Chart(categories) { cat in
                         SectorMark(
@@ -99,6 +103,19 @@ struct CategoryPieChart: View {
                             .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                         }
                     }
+                }
+
+                if let sel = selectedCategory, totalAmount > 0.01 {
+                    let pct = Int(round((sel.totalAmount / totalAmount) * 100))
+                    ChartTapExplainer(
+                        title: sel.Category?.localizedName ?? L("chart_pie_selection_title"),
+                        message: String(
+                            format: L("chart_pie_selection_body"),
+                            pct,
+                            sel.count,
+                            CurrencyHelper.format(sel.totalAmount)
+                        )
+                    )
                 }
             }
         }

@@ -181,6 +181,39 @@
 "spending_trend" = "Spending Trend";
 "no_data" = "No Data Yet";
 "add_transactions_for_charts" = "Add transactions to see your spending insights";
+"smart_insights" = "Smart insights";
+"chart_tap_hint" = "Tap the chart to see details for that month, or choose a category below.";
+"chart_pie_hint" = "Tap the list below a slice to see what it means for your budget.";
+"chart_bar_selection_title" = "Month: %@";
+"chart_bar_selection_body" = "Income %@ · Expenses %@ · Net %@. Net is bank inflows minus outflows for that month.";
+"chart_trend_selection_title" = "Expenses in %@";
+"chart_trend_selection_body" = "You spent %@ this month on bank-tracked expenses. Compare with the line: higher points mean heavier spending that month.";
+"chart_pie_selection_title" = "Category focus";
+"chart_pie_selection_body" = "%d%% of this month’s expenses · %d transactions · %@ total in this category.";
+
+/* Insight cards */
+"insight_net_pos_title" = "Monthly surplus";
+"insight_net_pos_body" = "Income beat expenses by about %@ this month — money left in your checking picture.";
+"insight_net_neg_title" = "Monthly shortfall";
+"insight_net_neg_body" = "Expenses exceeded income by about %@ on the bank ledger. Worth a quick review of one-off costs.";
+"insight_burn_title" = "Spending vs income";
+"insight_burn_body_ok" = "You’re using about %d%% of recorded income for bank expenses — room looks manageable if it stays here.";
+"insight_burn_over_title" = "Spending above income";
+"insight_burn_over_body" = "Bank expenses are about %d%% of income this month — plan cashflow or timing of big bills.";
+"insight_top_cat_title" = "Top spending category";
+"insight_top_cat_body" = "%@ leads with %d%% of expenses across %d recorded transactions.";
+"insight_mom_title" = "Vs last month";
+"insight_mom_exp_up_body" = "Expenses in %@ are up about %@%% vs the previous month.";
+"insight_mom_exp_down_body" = "Expenses in %@ are down about %@%% vs the previous month.";
+"insight_mom_flat_body" = "Spending is roughly flat compared with last month.";
+"insight_vs_avg_title" = "Vs recent average";
+"insight_vs_avg_above_body" = "%@ is roughly %d%% above your average monthly expenses in this window.";
+"insight_vs_avg_below_body" = "%@ is roughly %d%% under your average — lighter month.";
+"insight_long_trend_title" = "Half-year shape";
+"insight_long_trend_up_body" = "Recent months trend heavier than the start of this 6‑month window.";
+"insight_long_trend_down_body" = "Recent months are lighter than earlier in this 6‑month window.";
+"insight_peak_month_title" = "Peak spending month";
+"insight_peak_month_body" = "%@ had the highest expenses here: about %@.";
 
 /* Settings */
 "settings" = "Settings";
@@ -276,7 +309,15 @@
 "notif_budget_title" = "Budget Alert";
 "notif_budget_body" = "%@ has reached %d%% of its budget";
 "notif_card_title" = "Card Reminder";
-"notif_card_body" = "%@ billing is coming up in 2 days";
+"notif_card_body" = "%@ billing is due in %d days";
+"notif_recurring_title" = "Recurring payment tomorrow";
+"notif_recurring_body" = "%@ is scheduled for tomorrow — check your balance.";
+"notifications_intro" = "Important alerts for budgets, cards, and scheduled transactions. Time uses the daily reminder hour when applicable.";
+"budget_alert_threshold_label" = "Alert threshold";
+"card_reminder_days_label" = "Days before billing";
+"recurring_reminder_toggle" = "Day-before recurring";
+"recurring_reminder_footnote" = "Notifies the day before fixed income or expenses are due.";
+"transaction_bank_balance_after_format" = "Checking balance · %@";
 
 /* Installments */
 "installments" = "Installments";
@@ -319,6 +360,16 @@
 "leave_household_message" = "You will no longer see shared data from this household.";
 "leave_household_owner_message" = "As the owner, leaving will dissolve the household for all members.";
 "household_no_transactions_message" = "Transactions from both partners will appear here";
+"household_load_error_title" = "Couldn't load household";
+"household_load_error_message" = "Check your connection and try again. If the problem continues, sign out and back in.";
+"retry" = "Try again";
+
+/* Account reset */
+"reset_account" = "Reset account data";
+"reset_account_section" = "Danger zone";
+"reset_account_confirm_title" = "Reset all data?";
+"reset_account_confirm_message" = "This permanently deletes all your transactions, budgets, recurring items, credit cards, and categories (defaults will be restored). If you own a household, it will be dissolved for everyone. Your login and profile stay the same. This cannot be undone.";
+"reset_account_button" = "Reset my data";
 
 /* General */
 "loading" = "Loading...";

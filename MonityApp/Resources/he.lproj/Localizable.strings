@@ -181,6 +181,39 @@
 "spending_trend" = "מגמת הוצאות";
 "no_data" = "אין נתונים עדיין";
 "add_transactions_for_charts" = "הוסף תנועות כדי לראות תובנות על ההוצאות שלך";
+"smart_insights" = "תובנות חכמות";
+"chart_tap_hint" = "הקישו על הגרף לבחירת חודש, או בחרו קטגוריה ברשימה.";
+"chart_pie_hint" = "ניתן לבחור קטגוריה מהרשימה כדי לראות מה זה אומר על התקציב.";
+"chart_bar_selection_title" = "חודש: %@";
+"chart_bar_selection_body" = "הכנסות %@ · הוצאות %@ · נטו %@. נטו זה הפרש בין זרימות לעו״ש בחודש.";
+"chart_trend_selection_title" = "הוצאות ב־%@";
+"chart_trend_selection_body" = "הוצאתם כ־%@ בחודש הזה מתנועות שמקושרות לעו״ש. נקודות גבוהות בשורה = חודש עמוס יותר.";
+"chart_pie_selection_title" = "מיקוד בקטגוריה";
+"chart_pie_selection_body" = "%d%% מההוצאות החודש · %d תנועות · סה״כ %@ בקטגוריה.";
+
+/* Insight cards */
+"insight_net_pos_title" = "עודף חודשי";
+"insight_net_pos_body" = "ההכנסות עולות על ההוצאות בכ־%@ החודש — לפי תמונת העו״ש באפליקציה.";
+"insight_net_neg_title" = "גירעון חודשי";
+"insight_net_neg_body" = "ההוצאות עלו על ההכנסות בכ־%@ בצד העו״ש. שווה לעבור על הוצאות חד־פעמיות.";
+"insight_burn_title" = "הוצאות מול הכנסות";
+"insight_burn_body_ok" = "בערך %d%% מההכנסות הרשומות הולכות להוצאות עו״ש — נראה סביר אם זה נשמר.";
+"insight_burn_over_title" = "הוצאות מעל ההכנסות";
+"insight_burn_over_body" = "הוצאות העו״ש כ־%d%% מההכנסות החודש — כדאי לתכנן תזרים או תזמון חשבונות.";
+"insight_top_cat_title" = "קטגוריית הוצאה מובילה";
+"insight_top_cat_body" = "%@ מובילה עם %d%% מההוצאות ב־%d תנועות רשומות.";
+"insight_mom_title" = "מול חודש קודם";
+"insight_mom_exp_up_body" = "ב־%@ ההוצאות עלו בכ־%@%% לעומת החודש הקודם.";
+"insight_mom_exp_down_body" = "ב־%@ ההוצאות ירדו בכ־%@%% לעומת החודש הקודם.";
+"insight_mom_flat_body" = "ההוצאות דומות למדי לחודש שעבר.";
+"insight_vs_avg_title" = "מול ממוצע אחרון";
+"insight_vs_avg_above_body" = "ב־%@ ההוצאות גבוהות בכ־%d%% מהממוצע לחודש בחלון הזה.";
+"insight_vs_avg_below_body" = "ב־%@ ההוצאות נמוכות בכ־%d%% מהממוצע — חודש קליל.";
+"insight_long_trend_title" = "צורת חצי שנה";
+"insight_long_trend_up_body" = "בחודשים האחרונים נטייה לעומס יותר מתחילת חלון ששת החודשים.";
+"insight_long_trend_down_body" = "בחודשים האחרונים ירידה בהוצאות לעומת תחילת חלון ששת החודשים.";
+"insight_peak_month_title" = "חודש שיא בהוצאות";
+"insight_peak_month_body" = "ב־%@ נרשמו ההוצאות הגבוהות ביותר כאן: כ־%@.";
 
 /* Settings */
 "settings" = "הגדרות";
@@ -276,7 +309,15 @@
 "notif_budget_title" = "התראת תקציב";
 "notif_budget_body" = "%@ הגיע ל-%d%% מהתקציב";
 "notif_card_title" = "תזכורת כרטיס";
-"notif_card_body" = "חיוב %@ מתקרב בעוד יומיים";
+"notif_card_body" = "חיוב %@ בעוד %d ימים";
+"notif_recurring_title" = "מחר תנועה קבועה";
+"notif_recurring_body" = "%@ צפויה מחר — כדאי לוודא יתרה.";
+"notifications_intro" = "התראות חשובות לתקציב, כרטיסי אשראי ותנועות קבועות. בשעה שמוגדרת בתזכורת היומית, כאשר רלוונטי.";
+"budget_alert_threshold_label" = "סף התראה";
+"card_reminder_days_label" = "ימים לפני חיוב";
+"recurring_reminder_toggle" = "יום לפני תנועה קבועה";
+"recurring_reminder_footnote" = "מתריע ביום שלפני הכנסה או הוצאה קבועה שנקבעה.";
+"transaction_bank_balance_after_format" = "יתרת עו״ש אחרי · %@";
 
 /* Installments */
 "installments" = "תשלומים";
@@ -319,6 +360,16 @@
 "leave_household_message" = "לא תראה יותר את הנתונים המשותפים ממשק הבית הזה.";
 "leave_household_owner_message" = "כבעלים, עזיבה תפרק את משק הבית לכל החברים.";
 "household_no_transactions_message" = "תנועות משני בני הזוג יופיעו כאן";
+"household_load_error_title" = "לא ניתן לטעון את משק הבית";
+"household_load_error_message" = "בדקו את החיבור לרשת ונסו שוב. אם הבעיה נמשכת, התנתקו והתחברו מחדש.";
+"retry" = "נסה שוב";
+
+/* Account reset */
+"reset_account" = "איפוס נתוני חשבון";
+"reset_account_section" = "אזור מסוכן";
+"reset_account_confirm_title" = "לאפס את כל הנתונים?";
+"reset_account_confirm_message" = "פעולה זו מוחקת לצמיתות את כל התנועות, התקציבים, התנועות הקבועות, כרטיסי האשראי והקטגוריות (יקוימו קטגוריות ברירת מחדל מחדש). אם אתם בעלים של משק בית, הוא יפורק לכל המשתתפים. פרטי ההתחברות והפרופיל נשארים. לא ניתן לבטל.";
+"reset_account_button" = "אפס את הנתונים שלי";
 
 /* General */
 "loading" = "טוען...";

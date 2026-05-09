@@ -11,6 +11,10 @@ const Household = sequelize.define('Household', {
     type: DataTypes.STRING,
     defaultValue: 'משק בית',
   },
+  createdBy: {
+    type: DataTypes.UUID,
+    allowNull: true,
+  },
 }, {
   tableName: 'households',
 });

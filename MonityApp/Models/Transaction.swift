@@ -117,6 +117,11 @@ struct TransactionListResponse: Codable {
     let pages: Int
 }
 
+struct BankRunningBalancesResponse: Codable {
+    /// Transaction id → running checking-account balance after this transaction (bank-only, excludes billing-double entries).
+    let balances: [String: Double]
+}
+
 struct TransactionSingleResponse: Codable {
     let transaction: Transaction
 }

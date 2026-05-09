@@ -20,7 +20,10 @@ final class HouseholdViewModel: ObservableObject {
 
     var partnerMember: HouseholdMember? {
         let myId = AuthService.shared.currentUser?.id
-        return household?.activeMembers.first { $0.userId != myId }
+        return household?.activeMembers.first { member in
+            guard let uid = member.userId, let myId else { return false }
+            return uid != myId
+        }
     }
 
     var myMember: HouseholdMember? {
@@ -54,6 +57,11 @@ final class HouseholdViewModel: ObservableObject {
             household = response.household
             loadFailed = false
         } catch let apiError as APIError {
+            if case .decodingError(let err) = apiError {
+                loadFailed = true
+                print("Load household decode error: \(err)")
+                return
+            }
             if apiError.statusCode == 404 {
                 household = nil
                 loadFailed = false
